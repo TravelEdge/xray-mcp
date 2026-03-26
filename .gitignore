@@ -1,0 +1,10 @@
+implementation.md
+.claude/
+.planning/
+CLAUDE.md
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
