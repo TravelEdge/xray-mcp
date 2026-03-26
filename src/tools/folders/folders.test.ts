@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { XrayCloudClient } from "../../clients/XrayCloudClient.js";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { TOOL_REGISTRY } from "../registry.js";
 
 // Import side-effect to register all folder tools
@@ -18,13 +18,13 @@ import {
 // Shared mock client
 // ---------------------------------------------------------------------------
 
-function makeMockClient(): XrayCloudClient {
+function makeMockClient(): XrayClient {
   return {
     executeGraphQL: vi.fn(),
     executeRest: vi.fn(),
     executeRestRaw: vi.fn(),
     executeRestText: vi.fn(),
-  } as unknown as XrayCloudClient;
+  } as unknown as XrayClient;
 }
 
 /** Find a registered tool handler by name and return it. */
@@ -42,7 +42,7 @@ const jsonCtx = { auth: {} as never, format: "json" as const };
 // ---------------------------------------------------------------------------
 
 describe("folder tools", () => {
-  let client: XrayCloudClient;
+  let client: XrayClient;
 
   beforeEach(() => {
     client = makeMockClient();

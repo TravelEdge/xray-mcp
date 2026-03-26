@@ -13,6 +13,7 @@ RUN pnpm install --frozen-lockfile
 # Copy source and compile
 COPY tsconfig.json ./
 COPY src/ ./src/
+COPY scripts/ ./scripts/
 RUN pnpm build
 
 # Stage 2: Runtime — minimal production image

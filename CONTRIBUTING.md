@@ -52,6 +52,16 @@ After `pnpm build`, confirm the entry point exists:
 node dist/index.js --help 2>&1 || echo "binary exists"
 ```
 
+### Build hooks
+
+The `pnpm build` command runs a `prebuild` hook before TypeScript compilation:
+
+1. `prebuild` executes `tsx scripts/generate-tools-doc.ts`
+2. This scans every registered tool in `TOOL_REGISTRY` and generates `TOOLS.md` at the repo root
+3. Then `tsc` compiles TypeScript to `dist/`
+
+**Important:** Do not edit `TOOLS.md` manually — it is auto-generated on every build. If you add, rename, or remove a tool, `TOOLS.md` will update automatically on the next `pnpm build`.
+
 ### Environment variables (for local runs)
 
 | Variable | Required | Default | Description |
@@ -187,7 +197,7 @@ import { z } from "zod";
 import { FORMAT_PARAM } from "../shared/params.js";
 import { registerTool } from "../registry.js";
 import type { ToolContext } from "../../types/index.js";
-import type { XrayCloudClient } from "../../clients/index.js";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 
 registerTool({
   name: "xray_my_new_tool",
@@ -198,7 +208,7 @@ registerTool({
     ...FORMAT_PARAM.shape,
   }),
   handler: async (args, ctx: ToolContext) => {
-    const client = args._client as XrayCloudClient;
+    const client = args._client as XrayClient;
     const result = await client.someMethod(args.projectKey as string);
     // Format and return
     return { content: [{ type: "text", text: JSON.stringify(result) }] };
@@ -223,7 +233,7 @@ import "./xray_my_new_tool.js";
 
 6. **No manual wiring needed** — `src/tools/index.ts` imports the domain barrel, which imports your handler file, which calls `registerTool()`. The tool is automatically available in `TOOL_REGISTRY`.
 
-7. **Write tests** — create `src/tools/tests/xray_my_new_tool.test.ts` with unit tests mocking `XrayCloudClient`.
+7. **Write tests** — create `src/tools/tests/xray_my_new_tool.test.ts` with unit tests mocking `XrayClient`.
 
 ---
 

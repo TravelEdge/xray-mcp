@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import { registerTool } from "../registry.js";
 import { FORMAT_PARAM, paginationHeader, selectQuery } from "../shared/formatHelpers.js";
@@ -32,7 +32,7 @@ registerTool({
     format: FORMAT_PARAM,
   }),
   handler: async (args, ctx) => {
-    const client = args._client as XrayCloudClient;
+    const client = args._client as XrayClient;
     const query = selectQuery(ctx.format, LIST_PRECONDITIONS_TOON, LIST_PRECONDITIONS_FULL);
     const data = await client.executeGraphQL<PreconditionsResponse>(query, {
       jql: args.jql,

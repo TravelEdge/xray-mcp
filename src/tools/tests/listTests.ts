@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import {
@@ -42,7 +43,7 @@ registerTool({
       format: string;
     };
 
-    const client = args._client as XrayCloudClient;
+    const client = args._client as XrayClient;
     const limit = XrayCloudClient.validateLimit(rawLimit);
 
     const query = selectQuery(format, LIST_TESTS_TOON, LIST_TESTS_FULL);

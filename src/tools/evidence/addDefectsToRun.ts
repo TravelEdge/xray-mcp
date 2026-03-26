@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { XrayCloudClient } from "../../clients/XrayCloudClient.js";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
 import { ADD_DEFECTS_TO_RUN } from "./queries.js";
@@ -17,7 +17,7 @@ registerTool({
     format: FORMAT_PARAM,
   }),
   handler: async (args, _ctx) => {
-    const client = args._client as XrayCloudClient;
+    const client = args._client as XrayClient;
     await client.executeGraphQL(ADD_DEFECTS_TO_RUN, {
       id: args.id,
       issueIds: args.issueIds,

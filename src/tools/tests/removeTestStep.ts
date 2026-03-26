@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
 import { REMOVE_TEST_STEP } from "./queries.js";
@@ -15,7 +15,7 @@ registerTool({
   }),
   handler: async (args, _ctx) => {
     const { issueId, stepId } = args as { issueId: string; stepId: string };
-    const client = args._client as XrayCloudClient;
+    const client = args._client as XrayClient;
 
     await client.executeGraphQL(REMOVE_TEST_STEP, { issueId, stepId });
 

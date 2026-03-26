@@ -184,7 +184,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Deployment
 
-- [x] **DEPL-01**: Multi-stage Dockerfile produces minimal production image on node:22-alpine
+- [x] **DEPL-01**: Multi-stage Dockerfile produces minimal production image on node:24-alpine
 - [x] **DEPL-02**: Docker image runs as non-root user with tini as PID 1
 - [x] **DEPL-03**: Helm chart supports configurable replicas, resources, env vars, secrets
 - [x] **DEPL-04**: Helm chart includes HPA for CPU-based autoscaling
@@ -205,7 +205,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DOCS-05**: README includes credential mode configuration guide
 - [x] **DOCS-06**: Contributing guide covers dev setup, code style, testing, and PR process
 - [x] **DOCS-07**: Architecture doc explains component diagram, data flow, and design decisions
-- [ ] **DOCS-08**: Code includes comprehensive inline documentation (JSDoc on public APIs)
+- [x] **DOCS-08**: Code includes comprehensive inline documentation (JSDoc on public APIs)
 
 ### Tool Quality
 
@@ -276,10 +276,10 @@ Requirements for initial release. Each maps to roadmap phases.
 | GQL-03 | Phase 1 | Complete |
 | GQL-04 | Phase 1 | Complete |
 | GQL-05 | Phase 1 | Complete |
-| REST-01 | Phase 2 | Pending |
-| REST-02 | Phase 2 | Pending |
-| REST-03 | Phase 2 | Pending |
-| REST-04 | Phase 2 | Pending |
+| REST-01 | Phase 2 | Complete |
+| REST-02 | Phase 2 | Complete |
+| REST-03 | Phase 2 | Complete |
+| REST-04 | Phase 2 | Complete |
 | TOON-01 | Phase 1 | Complete |
 | TOON-02 | Phase 1 | Complete |
 | TOON-03 | Phase 1 | Complete |
@@ -287,80 +287,80 @@ Requirements for initial release. Each maps to roadmap phases.
 | TOON-05 | Phase 1 | Complete |
 | TOON-06 | Phase 1 | Complete |
 | TOON-07 | Phase 1 | Complete |
-| READ-01 | Phase 2 | Pending |
-| READ-02 | Phase 2 | Pending |
-| READ-03 | Phase 2 | Pending |
-| READ-04 | Phase 2 | Pending |
-| READ-05 | Phase 2 | Pending |
-| READ-06 | Phase 2 | Pending |
-| READ-07 | Phase 2 | Pending |
-| READ-08 | Phase 2 | Pending |
-| READ-09 | Phase 2 | Pending |
-| READ-10 | Phase 2 | Pending |
-| READ-11 | Phase 2 | Pending |
-| READ-12 | Phase 2 | Pending |
-| READ-13 | Phase 2 | Pending |
-| READ-14 | Phase 2 | Pending |
-| READ-15 | Phase 2 | Pending |
-| READ-16 | Phase 2 | Pending |
-| READ-17 | Phase 2 | Pending |
-| READ-18 | Phase 2 | Pending |
-| READ-19 | Phase 2 | Pending |
-| READ-20 | Phase 2 | Pending |
-| READ-21 | Phase 2 | Pending |
-| READ-22 | Phase 2 | Pending |
-| READ-23 | Phase 2 | Pending |
-| READ-24 | Phase 2 | Pending |
-| READ-25 | Phase 2 | Pending |
-| READ-26 | Phase 2 | Pending |
-| WTEST-01 | Phase 2 | Pending |
-| WTEST-02 | Phase 2 | Pending |
-| WTEST-03 | Phase 2 | Pending |
-| WTEST-04 | Phase 2 | Pending |
-| WTEST-05 | Phase 2 | Pending |
-| WTEST-06 | Phase 2 | Pending |
-| WTEST-07 | Phase 2 | Pending |
-| WTEST-08 | Phase 2 | Pending |
-| WTEST-09 | Phase 2 | Pending |
-| WEXEC-01 | Phase 2 | Pending |
-| WEXEC-02 | Phase 2 | Pending |
-| WEXEC-03 | Phase 2 | Pending |
-| WEXEC-04 | Phase 2 | Pending |
-| WEXEC-05 | Phase 2 | Pending |
-| WEXEC-06 | Phase 2 | Pending |
-| WPLAN-01 | Phase 2 | Pending |
-| WPLAN-02 | Phase 2 | Pending |
-| WPLAN-03 | Phase 2 | Pending |
-| WPLAN-04 | Phase 2 | Pending |
-| WPLAN-05 | Phase 2 | Pending |
-| WPLAN-06 | Phase 2 | Pending |
-| WSET-01 | Phase 2 | Pending |
-| WSET-02 | Phase 2 | Pending |
-| WSET-03 | Phase 2 | Pending |
-| WSET-04 | Phase 2 | Pending |
-| WRUN-01 | Phase 2 | Pending |
-| WRUN-02 | Phase 2 | Pending |
-| WRUN-03 | Phase 2 | Pending |
-| WRUN-04 | Phase 2 | Pending |
-| WRUN-05 | Phase 2 | Pending |
-| WRUN-06 | Phase 2 | Pending |
-| WRUN-07 | Phase 2 | Pending |
-| WRUN-08 | Phase 2 | Pending |
-| WRUN-09 | Phase 2 | Pending |
-| WRUN-10 | Phase 2 | Pending |
-| WPREC-01 | Phase 2 | Pending |
-| WPREC-02 | Phase 2 | Pending |
-| WPREC-03 | Phase 2 | Pending |
-| WPREC-04 | Phase 2 | Pending |
-| WPREC-05 | Phase 2 | Pending |
-| WFOLD-01 | Phase 2 | Pending |
-| WFOLD-02 | Phase 2 | Pending |
-| WFOLD-03 | Phase 2 | Pending |
-| WFOLD-04 | Phase 2 | Pending |
-| WFOLD-05 | Phase 2 | Pending |
-| WFOLD-06 | Phase 2 | Pending |
-| WFOLD-07 | Phase 2 | Pending |
-| WFOLD-08 | Phase 2 | Pending |
+| READ-01 | Phase 2 | Complete |
+| READ-02 | Phase 2 | Complete |
+| READ-03 | Phase 2 | Complete |
+| READ-04 | Phase 2 | Complete |
+| READ-05 | Phase 2 | Complete |
+| READ-06 | Phase 2 | Complete |
+| READ-07 | Phase 2 | Complete |
+| READ-08 | Phase 2 | Complete |
+| READ-09 | Phase 2 | Complete |
+| READ-10 | Phase 2 | Complete |
+| READ-11 | Phase 2 | Complete |
+| READ-12 | Phase 2 | Complete |
+| READ-13 | Phase 2 | Complete |
+| READ-14 | Phase 2 | Complete |
+| READ-15 | Phase 2 | Complete |
+| READ-16 | Phase 2 | Complete |
+| READ-17 | Phase 2 | Complete |
+| READ-18 | Phase 2 | Complete |
+| READ-19 | Phase 2 | Complete |
+| READ-20 | Phase 2 | Complete |
+| READ-21 | Phase 2 | Complete |
+| READ-22 | Phase 2 | Complete |
+| READ-23 | Phase 2 | Complete |
+| READ-24 | Phase 2 | Complete |
+| READ-25 | Phase 2 | Complete |
+| READ-26 | Phase 2 | Complete |
+| WTEST-01 | Phase 2 | Complete |
+| WTEST-02 | Phase 2 | Complete |
+| WTEST-03 | Phase 2 | Complete |
+| WTEST-04 | Phase 2 | Complete |
+| WTEST-05 | Phase 2 | Complete |
+| WTEST-06 | Phase 2 | Complete |
+| WTEST-07 | Phase 2 | Complete |
+| WTEST-08 | Phase 2 | Complete |
+| WTEST-09 | Phase 2 | Complete |
+| WEXEC-01 | Phase 2 | Complete |
+| WEXEC-02 | Phase 2 | Complete |
+| WEXEC-03 | Phase 2 | Complete |
+| WEXEC-04 | Phase 2 | Complete |
+| WEXEC-05 | Phase 2 | Complete |
+| WEXEC-06 | Phase 2 | Complete |
+| WPLAN-01 | Phase 2 | Complete |
+| WPLAN-02 | Phase 2 | Complete |
+| WPLAN-03 | Phase 2 | Complete |
+| WPLAN-04 | Phase 2 | Complete |
+| WPLAN-05 | Phase 2 | Complete |
+| WPLAN-06 | Phase 2 | Complete |
+| WSET-01 | Phase 2 | Complete |
+| WSET-02 | Phase 2 | Complete |
+| WSET-03 | Phase 2 | Complete |
+| WSET-04 | Phase 2 | Complete |
+| WRUN-01 | Phase 2 | Complete |
+| WRUN-02 | Phase 2 | Complete |
+| WRUN-03 | Phase 2 | Complete |
+| WRUN-04 | Phase 2 | Complete |
+| WRUN-05 | Phase 2 | Complete |
+| WRUN-06 | Phase 2 | Complete |
+| WRUN-07 | Phase 2 | Complete |
+| WRUN-08 | Phase 2 | Complete |
+| WRUN-09 | Phase 2 | Complete |
+| WRUN-10 | Phase 2 | Complete |
+| WPREC-01 | Phase 2 | Complete |
+| WPREC-02 | Phase 2 | Complete |
+| WPREC-03 | Phase 2 | Complete |
+| WPREC-04 | Phase 2 | Complete |
+| WPREC-05 | Phase 2 | Complete |
+| WFOLD-01 | Phase 2 | Complete |
+| WFOLD-02 | Phase 2 | Complete |
+| WFOLD-03 | Phase 2 | Complete |
+| WFOLD-04 | Phase 2 | Complete |
+| WFOLD-05 | Phase 2 | Complete |
+| WFOLD-06 | Phase 2 | Complete |
+| WFOLD-07 | Phase 2 | Complete |
+| WFOLD-08 | Phase 2 | Complete |
 | WEVID-01 | Phase 2 | Complete |
 | WEVID-02 | Phase 2 | Complete |
 | WEVID-03 | Phase 2 | Complete |
@@ -369,14 +369,14 @@ Requirements for initial release. Each maps to roadmap phases.
 | WEVID-06 | Phase 2 | Complete |
 | WEVID-07 | Phase 2 | Complete |
 | WEVID-08 | Phase 2 | Complete |
-| WIMP-01 | Phase 2 | Pending |
-| WIMP-02 | Phase 2 | Pending |
-| WIMP-03 | Phase 2 | Pending |
-| WIMP-04 | Phase 2 | Pending |
-| WIMP-05 | Phase 2 | Pending |
-| WIMP-06 | Phase 2 | Pending |
-| WIMP-07 | Phase 2 | Pending |
-| WIMP-08 | Phase 2 | Pending |
+| WIMP-01 | Phase 2 | Complete |
+| WIMP-02 | Phase 2 | Complete |
+| WIMP-03 | Phase 2 | Complete |
+| WIMP-04 | Phase 2 | Complete |
+| WIMP-05 | Phase 2 | Complete |
+| WIMP-06 | Phase 2 | Complete |
+| WIMP-07 | Phase 2 | Complete |
+| WIMP-08 | Phase 2 | Complete |
 | TRNS-01 | Phase 1 | Complete |
 | TRNS-02 | Phase 3 | Complete |
 | TRNS-03 | Phase 3 | Complete |
@@ -398,7 +398,7 @@ Requirements for initial release. Each maps to roadmap phases.
 | DOCS-05 | Phase 4 | Complete |
 | DOCS-06 | Phase 4 | Complete |
 | DOCS-07 | Phase 4 | Complete |
-| DOCS-08 | Phase 4 | Pending |
+| DOCS-08 | Phase 4 | Complete |
 | QUAL-01 | Phase 2 | Complete |
 | QUAL-02 | Phase 2 | Complete |
 | QUAL-03 | Phase 2 | Complete |
@@ -418,4 +418,4 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ---
 *Requirements defined: 2026-03-22*
-*Last updated: 2026-03-22 after initial definition*
+*Last updated: 2026-03-25 — traceability table corrected (86 Phase 2 entries Pending→Complete per v1.0 audit)*

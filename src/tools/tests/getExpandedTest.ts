@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
@@ -27,7 +27,7 @@ registerTool({
   }),
   handler: async (args, ctx) => {
     const { issueId, format } = args as { issueId: string; format: string };
-    const client = args._client as XrayCloudClient;
+    const client = args._client as XrayClient;
 
     const expandedQuery = selectQuery(format, GET_EXPANDED_TEST_TOON, GET_EXPANDED_TEST_FULL);
     let data: { getTest: unknown };

@@ -3,6 +3,7 @@
  * Uses mocked fetch — no real HTTP calls.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
 import type { HttpClient } from "../../clients/HttpClient.js";
 import { TOOL_REGISTRY } from "../registry.js";
@@ -21,7 +22,7 @@ import {
 // Trigger registerTool() calls
 import "./index.js";
 
-function makeClient(): { client: XrayCloudClient; mockRequest: ReturnType<typeof vi.fn> } {
+function makeClient(): { client: XrayClient; mockRequest: ReturnType<typeof vi.fn> } {
   const mockRequest = vi.fn();
   const httpClient = {
     request: mockRequest,
@@ -53,7 +54,7 @@ function makeCtx(format: "toon" | "json" | "summary" = "toon") {
 
 describe("evidence tools", () => {
   let mockRequest: ReturnType<typeof vi.fn>;
-  let client: XrayCloudClient;
+  let client: XrayClient;
 
   beforeEach(() => {
     ({ client, mockRequest } = makeClient());

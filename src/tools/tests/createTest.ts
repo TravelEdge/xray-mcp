@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
 import { CREATE_TEST } from "./queries.js";
@@ -50,7 +50,7 @@ registerTool({
         preconditionIssueIds?: string[];
       };
 
-    const client = args._client as XrayCloudClient;
+    const client = args._client as XrayClient;
     const data = await client.executeGraphQL<{
       createTest: { test: { issueId: string; jira: { key: string } }; warnings: string[] };
     }>(CREATE_TEST, {

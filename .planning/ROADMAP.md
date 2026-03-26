@@ -13,9 +13,10 @@ The project builds a production-grade MCP server wrapping the full Xray Cloud AP
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Scaffold, auth, GraphQL/REST clients, TOON formatter, and stdio transport wired into a working but empty MCP server (completed 2026-03-23)
-- [ ] **Phase 2: Full Tool Coverage** - All 83 read and write tools implemented with Zod schemas, TOON formatting, and WriteGuard enforcement
+- [x] **Phase 2: Full Tool Coverage** - All 90 read and write tools implemented with Zod schemas, TOON formatting, and WriteGuard enforcement (completed 2026-03-23)
 - [x] **Phase 3: Productionization** - HTTP transport, Docker image, Helm chart, CI/CD pipeline, and transport smoke tests (completed 2026-03-25)
-- [ ] **Phase 4: Publication** - Complete documentation, inline code comments, and verified npm + Docker release readiness
+- [x] **Phase 4: Publication** - Complete documentation, inline code comments, and verified npm + Docker release readiness (completed 2026-03-25)
+- [x] **Phase 5: Gap Closure & Tech Debt** - Fix Docker build (scripts/ not copied), remove dead code, clean up stale traceability and documentation gaps from audit (completed 2026-03-25)
 
 ## Phase Details
 
@@ -39,7 +40,7 @@ Plans:
 - [x] 01-05-PLAN.md — Wire createServer factory and stdio transport entry point
 
 ### Phase 2: Full Tool Coverage
-**Goal**: All 90 Xray MCP tools are callable, return TOON-formatted responses, and a developer can drive a complete test management workflow entirely through the MCP server
+**Goal**: All 90 Xray MCP tools are callable, return TOON-formatted responses, and a developer can drive a complete test management workflow entirely through the MCP server (originally scoped as 83, expanded to 90 during implementation)
 **Depends on**: Phase 1
 **Requirements**: GQL-05, REST-01, REST-02, REST-03, REST-04, READ-01, READ-02, READ-03, READ-04, READ-05, READ-06, READ-07, READ-08, READ-09, READ-10, READ-11, READ-12, READ-13, READ-14, READ-15, READ-16, READ-17, READ-18, READ-19, READ-20, READ-21, READ-22, READ-23, READ-24, READ-25, READ-26, WTEST-01, WTEST-02, WTEST-03, WTEST-04, WTEST-05, WTEST-06, WTEST-07, WTEST-08, WTEST-09, WEXEC-01, WEXEC-02, WEXEC-03, WEXEC-04, WEXEC-05, WEXEC-06, WPLAN-01, WPLAN-02, WPLAN-03, WPLAN-04, WPLAN-05, WPLAN-06, WSET-01, WSET-02, WSET-03, WSET-04, WRUN-01, WRUN-02, WRUN-03, WRUN-04, WRUN-05, WRUN-06, WRUN-07, WRUN-08, WRUN-09, WRUN-10, WPREC-01, WPREC-02, WPREC-03, WPREC-04, WPREC-05, WFOLD-01, WFOLD-02, WFOLD-03, WFOLD-04, WFOLD-05, WFOLD-06, WFOLD-07, WFOLD-08, WEVID-01, WEVID-02, WEVID-03, WEVID-04, WEVID-05, WEVID-06, WEVID-07, WEVID-08, WIMP-01, WIMP-02, WIMP-03, WIMP-04, WIMP-05, WIMP-06, WIMP-07, WIMP-08, QUAL-01, QUAL-02, QUAL-03, QUAL-04, QUAL-05, TEST-04, TEST-05
 **Success Criteria** (what must be TRUE):
@@ -85,19 +86,36 @@ Plans:
   2. A DevOps engineer can deploy the server to Kubernetes using the Helm instructions in the README without consulting any external documentation
   3. A contributor can set up a dev environment, run the test suite, and understand the architecture from CONTRIBUTING.md and ARCHITECTURE.md alone
   4. Every public function and class in src/ has a JSDoc comment explaining its contract and the reason for non-obvious design choices
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 04-01-PLAN.md — TOOLS.md auto-generator script and tool reference
 - [x] 04-02-PLAN.md — README.md with full user documentation + delete implementation.md
 - [x] 04-03-PLAN.md — CONTRIBUTING.md and ARCHITECTURE.md
-- [ ] 04-04-PLAN.md — JSDoc on public API surface
+- [x] 04-04-PLAN.md — JSDoc on public API surface
+
+### Phase 5: Gap Closure & Tech Debt
+**Goal**: Close all gaps identified by v1.0 milestone audit — fix broken Docker build, remove dead code, update stale documentation and traceability records
+**Depends on**: Phase 4
+**Requirements**: DEPL-01 (re-verified after Dockerfile fix)
+**Gap Closure**: Closes DOCKER-PREBUILD, DOCKER-BUILD-FLOW, DEAD-CODE-GETFORMATTER from v1.0-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. `docker build .` completes without error (scripts/ directory available during prebuild)
+  2. No dead code exports remain in src/formatters/index.ts
+  3. All 86 Phase 2 traceability entries show "Complete" in REQUIREMENTS.md
+  4. CONTRIBUTING.md documents the prebuild/TOOLS.md auto-generation workflow
+**Plans:** 2/2 plans complete
+
+Plans:
+- [x] 05-01-PLAN.md — Docker fix, dead code removal, documentation and traceability cleanup
+- [x] 05-02-PLAN.md — Type cast standardization (XrayCloudClient to XrayClient interface)
 
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 6/6 | Complete   | 2026-03-23 |
-| 2. Full Tool Coverage | 11/12 | In Progress|  |
+| 2. Full Tool Coverage | 11/12 | Complete   | 2026-03-23 |
 | 3. Productionization | 4/4 | Complete   | 2026-03-25 |
-| 4. Publication | 3/4 | In Progress|  |
+| 4. Publication | 4/4 | Complete   | 2026-03-25 |
+| 5. Gap Closure & Tech Debt | 2/2 | Complete   | 2026-03-25 |

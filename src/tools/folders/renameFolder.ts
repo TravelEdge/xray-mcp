@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { XrayCloudClient } from "../../clients/XrayCloudClient.js";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
@@ -16,7 +16,7 @@ registerTool({
     format: FORMAT_PARAM,
   }),
   handler: async (args, ctx) => {
-    const client = args._client as XrayCloudClient;
+    const client = args._client as XrayClient;
     const data = await client.executeGraphQL<{
       renameFolder: { folder: { name: string; path: string; testsCount: number }; warnings?: string[] };
     }>(RENAME_FOLDER, {

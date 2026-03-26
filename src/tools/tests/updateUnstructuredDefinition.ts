@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
 import { UPDATE_UNSTRUCTURED_DEFINITION } from "./queries.js";
@@ -15,7 +15,7 @@ registerTool({
   }),
   handler: async (args, _ctx) => {
     const { issueId, definition } = args as { issueId: string; definition: string };
-    const client = args._client as XrayCloudClient;
+    const client = args._client as XrayClient;
 
     await client.executeGraphQL(UPDATE_UNSTRUCTURED_DEFINITION, { issueId, definition });
 

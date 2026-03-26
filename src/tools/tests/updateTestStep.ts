@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
 import { UPDATE_TEST_STEP } from "./queries.js";
@@ -24,7 +24,7 @@ registerTool({
       data?: string;
       result?: string;
     };
-    const client = args._client as XrayCloudClient;
+    const client = args._client as XrayClient;
 
     await client.executeGraphQL(UPDATE_TEST_STEP, { issueId, stepId, action, data, result });
 

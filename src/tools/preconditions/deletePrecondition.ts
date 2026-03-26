@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { registerTool } from "../registry.js";
 import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { DELETE_PRECONDITION } from "./queries.js";
@@ -15,7 +15,7 @@ registerTool({
     format: FORMAT_PARAM,
   }),
   handler: async (args, _ctx) => {
-    const client = args._client as XrayCloudClient;
+    const client = args._client as XrayClient;
     await client.executeGraphQL(DELETE_PRECONDITION, { issueId: args.issueId });
     return {
       content: [

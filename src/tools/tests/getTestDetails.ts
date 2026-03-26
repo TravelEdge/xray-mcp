@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
+import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import { FORMAT_PARAM } from "../shared/formatHelpers.js";
 import { selectQuery } from "../shared/formatHelpers.js";
@@ -20,10 +20,10 @@ registerTool({
   }),
   handler: async (args, ctx) => {
     const { issueId, format } = args as { issueId: string; format: string };
-    const client = (args._client as XrayCloudClient) ?? undefined;
+    const client = (args._client as XrayClient) ?? undefined;
 
     const query = selectQuery(format, GET_TEST_TOON, GET_TEST_FULL);
-    const data = await (client as XrayCloudClient).executeGraphQL<{
+    const data = await (client as XrayClient).executeGraphQL<{
       getTest: unknown;
     }>(query, { issueId });
 

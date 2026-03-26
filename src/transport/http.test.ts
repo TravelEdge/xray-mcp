@@ -121,9 +121,10 @@ describe("HTTP Transport", () => {
 });
 
 describe("Stdio Transport", () => {
-  it("src/index.ts exists and is importable without throwing in test environment", async () => {
-    // Verify the module exists — actual stdio connection test requires a subprocess
-    // In test environment, we just confirm no top-level crash on import
-    expect(true).toBe(true);
+  it("src/index.ts can be dynamically imported without throwing", async () => {
+    // Verify the entry point module can be loaded without top-level errors.
+    // Actual stdio connection requires a subprocess; this confirms no import crash.
+    const mod = await import("../index.js");
+    expect(mod).toBeDefined();
   });
 });

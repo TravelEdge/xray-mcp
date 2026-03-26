@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-last_updated: "2026-03-25T14:27:09.015Z"
+status: Phase complete — ready for verification
+last_updated: "2026-03-25T19:28:57.953Z"
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 26
-  completed_plans: 25
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 28
+  completed_plans: 28
 ---
 
 # Project State
@@ -18,12 +18,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** LLM-powered tools can read, create, and manage Xray test management data through a single MCP server with token-efficient responses
-**Current focus:** Phase 04 — publication
+**Current focus:** Phase 05 — gap-closure
 
 ## Current Position
 
-Phase: 04 (publication) — EXECUTING
-Plan: 4 of 4
+Phase: 05 (gap-closure) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -64,6 +64,10 @@ Plan: 4 of 4
 | Phase 03-productionization P03 | 3 | 2 tasks | 11 files |
 | Phase 04-publication P02 | 5 | 2 tasks | 1 files |
 | Phase 04-publication P03 | 15 | 2 tasks | 2 files |
+| Phase 04-publication P01 | 4 | 1 tasks | 4 files |
+| Phase 04-publication P04 | 7 | 2 tasks | 11 files |
+| Phase 05-gap-closure P01 | 30 | 2 tasks | 5 files |
+| Phase 05-gap-closure P02 | 15 | 2 tasks | 40 files |
 
 ## Accumulated Context
 
@@ -101,6 +105,15 @@ Recent decisions affecting current work:
 - [Phase 04-publication]: implementation.md was already in .gitignore (never tracked) — deleted from disk only; D-52 satisfied
 - [Phase 04-publication]: IDE config key difference documented: Claude Desktop/Cursor use mcpServers+transport:http; VS Code uses servers+type:http
 - [Phase 04-publication]: CONTRIBUTING.md and ARCHITECTURE.md added as separate repo-root files per D-51 — README stays end-user focused; ARCHITECTURE.md replaces implementation.md (D-52)
+- [Phase 04-publication]: prebuild hook in package.json ensures TOOLS.md regenerates automatically before tsc on every build (D-59)
+- [Phase 04-publication]: JSDoc only on exported symbols — private/internal helpers not documented unless non-obvious logic
+- [Phase 04-publication]: @example on four key entry points: AuthManager, CredentialStore, createServer, ToonFormatter
+- [Phase 04-publication]: Field-level JSDoc on interface properties (not just interface-level) for IDE tooltip quality
+- [Phase 05-gap-closure]: COPY scripts/ added to Dockerfile builder stage before RUN pnpm build — prebuild hook requires scripts/ to be present
+- [Phase 05-gap-closure]: getFormatter dead code removed from formatters barrel — confirmed nothing imported it; barrel now has 3 re-export lines only
+- [Phase 05-gap-closure]: Stdio test replaced with real dynamic import(../index.js) — confirms entry point loads without top-level crash
+- [Phase 05-gap-closure]: listTests/listExpandedTests keep XrayCloudClient import alongside XrayClient for validateLimit() static method — interface cannot expose static methods
+- [Phase 05-gap-closure]: evidence.test.ts keeps XrayCloudClient value import for new XrayCloudClient() construction; type annotations changed to XrayClient interface
 
 ### Pending Todos
 

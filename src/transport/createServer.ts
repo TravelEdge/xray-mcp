@@ -79,7 +79,7 @@ export function createServer(config: ServerConfig = {}): McpServer {
       };
 
       // Inject the constructed XrayCloudClient into args under the _client key.
-      // Phase 2 tool handlers extract the client via: const client = args._client as XrayCloudClient
+      // Phase 2 tool handlers extract the client via: const client = args._client as XrayClient
       // This avoids extending ToolContext with a typed client dependency.
       return tool.handler({ ...args, _client: client }, ctx);
     });
