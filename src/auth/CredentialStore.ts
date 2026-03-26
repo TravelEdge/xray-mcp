@@ -2,7 +2,8 @@ import type { AuthContext, CredentialMode, XrayRegion } from "../types/index.js"
 import { XrayAuthError } from "../types/index.js";
 
 /**
- * Resolves Xray credentials from environment variables.
+ * Resolves Xray Cloud credentials from environment variables (stdio) or HTTP headers.
+ * Supports three credential modes: strict, shared-reads, fully-shared.
  *
  * All env vars use the XRAY_ prefix per D-08:
  * - XRAY_CLIENT_ID: Xray Cloud client ID (required)
@@ -12,6 +13,13 @@ import { XrayAuthError } from "../types/index.js";
  *
  * Lazy validation per D-10 — credentials are only validated when first needed,
  * not at server startup.
+ *
+ * @example
+ * ```typescript
+ * const store = new CredentialStore();
+ * const creds = store.resolveFromEnv();
+ * const mode = store.getCredentialMode();
+ * ```
  */
 export class CredentialStore {
   /**

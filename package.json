@@ -15,6 +15,8 @@
     "node": ">=22"
   },
   "scripts": {
+    "generate:tools-doc": "tsx scripts/generate-tools-doc.ts",
+    "prebuild": "tsx scripts/generate-tools-doc.ts",
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "biome check .",
@@ -35,6 +37,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^22",
     "@vitest/coverage-v8": "^4.1.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.0"
   },

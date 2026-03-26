@@ -5,25 +5,35 @@ import { TOOL_REGISTRY } from "../tools/registry.js";
 import type { ToolContext } from "../types/index.js";
 
 /**
- * Configuration for the MCP server instance.
+ * Configuration options for the MCP server instance.
+ * All fields are optional — defaults produce a working server with env-based credentials.
  */
 export interface ServerConfig {
+  /** MCP server name reported during protocol handshake. Defaults to "xray-mcp". */
   name?: string;
+  /** MCP server version reported during protocol handshake. Defaults to "0.1.0". */
   version?: string;
-  credentialOverride?: import("../types/index.js").AuthContext; // Provided in HTTP mode; undefined = resolve from env
+  /** Pre-resolved credentials (HTTP mode). When set, skips env var resolution (D-33). */
+  credentialOverride?: import("../types/index.js").AuthContext;
 }
 
 /**
- * Factory function that creates and wires all foundation components into
- * a configured McpServer instance.
+ * Creates and configures an MCP server with all Xray tools registered.
  *
  * Per D-10: Lazy credential validation — credentials are only resolved
  * when the first tool call is made, not at server startup.
  *
  * Per D-11: Transport-specific code lives in src/transport/.
  *
- * The server starts with zero tools in Phase 1 — TOOL_REGISTRY is populated
- * by Phase 2 tool imports.
+ * @param config - Optional server configuration (name, version, credential override).
+ * @returns Configured McpServer instance ready to connect to a transport.
+ *
+ * @example
+ * ```typescript
+ * const server = createServer();
+ * const transport = new StdioServerTransport();
+ * await server.connect(transport);
+ * ```
  */
 export function createServer(config: ServerConfig = {}): McpServer {
   const { name = "xray-mcp", version = "0.1.0", credentialOverride } = config;

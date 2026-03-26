@@ -1,5 +1,14 @@
 import { XrayAuthError, XrayHttpError } from "../types/index.js";
 
+/**
+ * HTTP client wrapper providing authenticated requests to Xray Cloud REST and GraphQL APIs.
+ *
+ * Features:
+ * - Automatic retry with exponential backoff for 429 rate limit responses (max 3 retries, 30s cap)
+ * - Throws XrayAuthError on 401/403 responses
+ * - Throws XrayHttpError on other non-2xx responses
+ * - Supports JSON, raw string, and text response modes
+ */
 export class HttpClient {
   private readonly maxRetries = 3;
   private readonly maxBackoffMs = 30_000;
@@ -52,6 +61,15 @@ export class HttpClient {
     );
   }
 
+  /**
+   * Sends an authenticated HTTP request and parses the JSON response.
+   *
+   * @param url - Full URL to request.
+   * @param options - Request options including method, bearer token, optional body and headers.
+   * @returns Parsed JSON response body typed as T.
+   * @throws {XrayAuthError} On 401/403 responses.
+   * @throws {XrayHttpError} On non-2xx responses (excluding 429 which triggers retry).
+   */
   async request<T>(
     url: string,
     options: {
@@ -76,9 +94,16 @@ export class HttpClient {
     );
   }
 
-  /** Send a request with a raw string body (non-JSON) — used by REST import tools.
-   *  Body type is string only (no FormData); multipart bodies are constructed via
-   *  buildMultipartBody() helper which produces a string with fixed boundary.
+  /**
+   * Sends an authenticated HTTP request with a raw string body and parses the JSON response.
+   * Used by REST import tools (XML, multipart). Body type is string only — no FormData.
+   * Multipart bodies are constructed via buildMultipartBody() helper.
+   *
+   * @param url - Full URL to request.
+   * @param options - Request options including method, bearer token, raw body string, and content type.
+   * @returns Parsed JSON response body typed as T.
+   * @throws {XrayAuthError} On 401/403 responses.
+   * @throws {XrayHttpError} On non-2xx responses.
    */
   async requestRaw<T>(
     url: string,
@@ -103,7 +128,16 @@ export class HttpClient {
     );
   }
 
-  /** Send a request and return the response as raw text — used for Cucumber feature export. */
+  /**
+   * Sends an authenticated HTTP request and returns the raw text response body.
+   * Used for Cucumber feature export (returns .feature file content as text).
+   *
+   * @param url - Full URL to request.
+   * @param options - Request options including method, bearer token, and optional headers.
+   * @returns Response body as a string.
+   * @throws {XrayAuthError} On 401/403 responses.
+   * @throws {XrayHttpError} On non-2xx responses.
+   */
   async requestText(
     url: string,
     options: {

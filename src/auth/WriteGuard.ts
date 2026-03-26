@@ -12,6 +12,9 @@ import { XrayAuthError } from "../types/index.js";
  * Created once per server instance (stdio: once at startup; HTTP: per-request for credential isolation).
  */
 export class WriteGuard {
+  /**
+   * @param mode - The credential sharing mode controlling access enforcement.
+   */
   constructor(private readonly mode: CredentialMode) {}
 
   /**

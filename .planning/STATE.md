@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
-last_updated: "2026-03-25T03:59:50.123Z"
+status: Ready to execute
+last_updated: "2026-03-25T14:27:09.015Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 26
+  completed_plans: 25
 ---
 
 # Project State
@@ -18,11 +18,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** LLM-powered tools can read, create, and manage Xray test management data through a single MCP server with token-efficient responses
-**Current focus:** Phase 03 — productionization
+**Current focus:** Phase 04 — publication
 
 ## Current Position
 
-Phase: 03 (productionization) — EXECUTING
+Phase: 04 (publication) — EXECUTING
 Plan: 4 of 4
 
 ## Performance Metrics
@@ -62,6 +62,8 @@ Plan: 4 of 4
 | Phase 03-productionization P02 | 2 | 2 tasks | 2 files |
 | Phase 03-productionization P04 | 2 | 2 tasks | 2 files |
 | Phase 03-productionization P03 | 3 | 2 tasks | 11 files |
+| Phase 04-publication P02 | 5 | 2 tasks | 1 files |
+| Phase 04-publication P03 | 15 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -96,6 +98,9 @@ Recent decisions affecting current work:
 - [Phase 03-productionization]: node:24-alpine as production base — latest LTS, minimal attack surface; tini installed via apk add as PID 1 for signal handling; TRANSPORT=http hardcoded — Docker image is HTTP-only (D-34)
 - [Phase 03-productionization]: CI tests Node 22+24 matrix with fail-fast: false; publish workflow gates npm OIDC and Docker GHCR publish on validate-version job
 - [Phase 03-productionization]: existingSecret gates chart-created Secret; secretName helper used in Deployment envFrom for CSI/ESO support
+- [Phase 04-publication]: implementation.md was already in .gitignore (never tracked) — deleted from disk only; D-52 satisfied
+- [Phase 04-publication]: IDE config key difference documented: Claude Desktop/Cursor use mcpServers+transport:http; VS Code uses servers+type:http
+- [Phase 04-publication]: CONTRIBUTING.md and ARCHITECTURE.md added as separate repo-root files per D-51 — README stays end-user focused; ARCHITECTURE.md replaces implementation.md (D-52)
 
 ### Pending Todos
 

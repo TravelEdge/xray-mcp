@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Scaffold, auth, GraphQL/REST clients, TOON formatter, and stdio transport wired into a working but empty MCP server (completed 2026-03-23)
 - [ ] **Phase 2: Full Tool Coverage** - All 83 read and write tools implemented with Zod schemas, TOON formatting, and WriteGuard enforcement
-- [x] **Phase 3: Productionization** - HTTP transport, Docker image, Helm chart, CI/CD pipeline, and transport smoke tests (completed 2026-03-25)
+- [x] **Phase 3: Productionization** - HTTP transport, Docker image, Helm chart, CI/CD pipeline, and transport smoke tests (completed 2026-03-25)
 - [ ] **Phase 4: Publication** - Complete documentation, inline code comments, and verified npm + Docker release readiness
 
 ## Phase Details
@@ -85,7 +85,13 @@ Plans:
   2. A DevOps engineer can deploy the server to Kubernetes using the Helm instructions in the README without consulting any external documentation
   3. A contributor can set up a dev environment, run the test suite, and understand the architecture from CONTRIBUTING.md and ARCHITECTURE.md alone
   4. Every public function and class in src/ has a JSDoc comment explaining its contract and the reason for non-obvious design choices
-**Plans**: TBD
+**Plans:** 3/4 plans executed
+
+Plans:
+- [x] 04-01-PLAN.md — TOOLS.md auto-generator script and tool reference
+- [x] 04-02-PLAN.md — README.md with full user documentation + delete implementation.md
+- [x] 04-03-PLAN.md — CONTRIBUTING.md and ARCHITECTURE.md
+- [ ] 04-04-PLAN.md — JSDoc on public API surface
 
 ## Progress Table
 
@@ -94,4 +100,4 @@ Plans:
 | 1. Foundation | 6/6 | Complete   | 2026-03-23 |
 | 2. Full Tool Coverage | 11/12 | In Progress|  |
 | 3. Productionization | 4/4 | Complete   | 2026-03-25 |
-| 4. Publication | 0/? | Not started | - |
+| 4. Publication | 3/4 | In Progress|  |

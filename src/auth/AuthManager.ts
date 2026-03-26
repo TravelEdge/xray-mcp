@@ -24,13 +24,20 @@ interface CachedToken {
 }
 
 /**
- * Manages Xray Cloud JWT lifecycle: token acquisition, caching per client_id,
- * promise deduplication for concurrent requests, and exponential backoff retry on 429.
+ * Manages JWT authentication with Xray Cloud API.
+ * Caches tokens per client_id and deduplicates concurrent authentication requests.
  *
  * Design decisions:
  * - Module-scope singleton (authManager) so the token cache survives across tool calls
  * - Promise deduplication (inFlight map) prevents thundering herd on concurrent requests
  * - Token refreshed 50 min before 24h expiry to avoid mid-request expiry
+ *
+ * @example
+ * ```typescript
+ * const auth = new AuthManager();
+ * const token = await auth.getCloudToken({ xrayClientId: "id", xrayClientSecret: "secret", xrayRegion: "global" });
+ * // Token is cached — subsequent calls return cached value until expiry
+ * ```
  */
 export class AuthManager {
   /** Cached tokens keyed by xrayClientId */
