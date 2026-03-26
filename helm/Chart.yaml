@@ -1,0 +1,16 @@
+apiVersion: v2
+name: xray-mcp
+description: MCP server for Xray Cloud Test Management API
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - mcp
+  - xray
+  - test-management
+home: https://github.com/triparc/xray-mcp
+sources:
+  - https://github.com/triparc/xray-mcp
+maintainers:
+  - name: TripArc
+    url: https://github.com/triparc

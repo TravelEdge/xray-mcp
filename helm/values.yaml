@@ -1,0 +1,91 @@
+# Default values for xray-mcp Helm chart.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/triparc/xray-mcp
+  tag: ""  # Defaults to chart appVersion
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: xray-mcp.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: xray-mcp-tls
+  #    hosts:
+  #      - xray-mcp.example.com
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+# Pod disruption budget
+pdb:
+  enabled: true
+  minAvailable: 1
+
+# Xray configuration
+xray:
+  region: global
+  credentialMode: strict
+
+# Existing secret name (for CSI Secret Store / External Secrets Operator).
+# When set, chart does NOT create a Secret resource. The Deployment references this secret.
+# The secret must contain XRAY_CLIENT_ID and XRAY_CLIENT_SECRET keys.
+existingSecret: ""
+
+# Only used when existingSecret is empty. Chart creates a Secret with these values.
+credentials:
+  clientId: ""
+  clientSecret: ""
+
+# Additional environment variables as key-value pairs
+env: {}
+
+# Pod-level settings
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Liveness and readiness probes
+probes:
+  liveness:
+    path: /healthz
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    timeoutSeconds: 5
+  readiness:
+    path: /readyz
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5

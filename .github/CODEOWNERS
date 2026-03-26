@@ -1,0 +1,7 @@
+# Default owners for everything in the repo
+* @SpartaDeveloper93 @TravelEdge/automation-team
+
+# CI/CD and deployment
+.github/ @SpartaDeveloper93
+Dockerfile @SpartaDeveloper93
+helm/ @SpartaDeveloper93

@@ -1,0 +1,44 @@
+# Planning and AI artifacts (never in image)
+.planning/
+.claude/
+.agents/
+*.md
+
+# Source (compiled output in dist/ is all we need)
+src/
+
+# Dependencies (reinstalled in Docker for correct platform binaries)
+node_modules/
+
+# Test and dev files
+**/*.test.ts
+**/*.spec.ts
+coverage/
+.vitest/
+
+# Editor and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker (prevent recursive context)
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Helm chart (not needed in image)
+helm/
+
+# CI config (not needed in image)
+.github/
+
+# Config files only needed at dev time
+biome.json
+tsconfig.json
+vitest.config.ts
