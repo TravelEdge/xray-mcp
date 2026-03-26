@@ -8,14 +8,11 @@ export const GET_COVERABLE_ISSUE_TOON = `
     getCoverableIssue(issueId: $issueId) {
       issueId
       jira(fields: ["key", "summary"])
-      testCoverage {
-        covered
-        coveragePercentage
-        tests(limit: 100) {
-          total
-          results {
-            issueId
-          }
+      status { name }
+      tests(limit: 100) {
+        total
+        results {
+          issueId
         }
       }
     }
@@ -28,15 +25,12 @@ export const GET_COVERABLE_ISSUE_FULL = `
     getCoverableIssue(issueId: $issueId) {
       issueId
       jira(fields: ["key", "summary", "status", "priority", "assignee"])
-      testCoverage {
-        covered
-        coveragePercentage
-        tests(limit: 100) {
-          total
-          results {
-            issueId
-            jira(fields: ["key", "summary"])
-          }
+      status { name description color }
+      tests(limit: 100) {
+        total
+        results {
+          issueId
+          jira(fields: ["key", "summary"])
         }
       }
     }
@@ -51,10 +45,7 @@ export const LIST_COVERABLE_ISSUES_TOON = `
       results {
         issueId
         jira(fields: ["key", "summary"])
-        testCoverage {
-          covered
-          coveragePercentage
-        }
+        status { name }
       }
     }
   }
@@ -68,15 +59,12 @@ export const LIST_COVERABLE_ISSUES_FULL = `
       results {
         issueId
         jira(fields: ["key", "summary", "status", "priority", "assignee"])
-        testCoverage {
-          covered
-          coveragePercentage
-          tests(limit: 100) {
-            total
-            results {
-              issueId
-              jira(fields: ["key", "summary"])
-            }
+        status { name description color }
+        tests(limit: 100) {
+          total
+          results {
+            issueId
+            jira(fields: ["key", "summary"])
           }
         }
       }
@@ -88,43 +76,49 @@ export const LIST_COVERABLE_ISSUES_FULL = `
 
 /** TOON variant for single dataset. */
 export const GET_DATASET_TOON = `
-  query GetDatasetToon($id: String!) {
-    getDataset(id: $id) {
-      name
+  query GetDatasetToon($testIssueId: String!, $testExecIssueId: String, $testPlanIssueId: String, $callTestIssueId: String) {
+    getDataset(testIssueId: $testIssueId, testExecIssueId: $testExecIssueId, testPlanIssueId: $testPlanIssueId, callTestIssueId: $callTestIssueId) {
+      id
       parameters {
         name
       }
-      rows
-      totalRows
+      rows {
+        order
+        Values
+      }
     }
   }
 `;
 
 /** FULL variant for single dataset. */
 export const GET_DATASET_FULL = `
-  query GetDatasetFull($id: String!) {
-    getDataset(id: $id) {
-      name
+  query GetDatasetFull($testIssueId: String!, $testExecIssueId: String, $testPlanIssueId: String, $callTestIssueId: String) {
+    getDataset(testIssueId: $testIssueId, testExecIssueId: $testExecIssueId, testPlanIssueId: $testPlanIssueId, callTestIssueId: $callTestIssueId) {
+      id
+      testIssueId
+      testExecIssueId
+      testPlanIssueId
+      testStepId
+      callTestIssueId
       parameters {
         name
       }
-      rows
-      totalRows
+      rows {
+        order
+        Values
+      }
     }
   }
 `;
 
 /** TOON variant for listing datasets. */
 export const LIST_DATASETS_TOON = `
-  query ListDatasetsToon($projectId: String!, $limit: Int!, $start: Int) {
-    getDatasets(projectId: $projectId, limit: $limit, start: $start) {
-      total
-      results {
+  query ListDatasetsToon($testIssueIds: [String!], $testExecIssueIds: [String!], $testPlanIssueIds: [String!]) {
+    getDatasets(testIssueIds: $testIssueIds, testExecIssueIds: $testExecIssueIds, testPlanIssueIds: $testPlanIssueIds) {
+      id
+      testIssueId
+      parameters {
         name
-        totalRows
-        parameters {
-          name
-        }
       }
     }
   }
@@ -132,16 +126,18 @@ export const LIST_DATASETS_TOON = `
 
 /** FULL variant for listing datasets. */
 export const LIST_DATASETS_FULL = `
-  query ListDatasetsFull($projectId: String!, $limit: Int!, $start: Int) {
-    getDatasets(projectId: $projectId, limit: $limit, start: $start) {
-      total
-      results {
+  query ListDatasetsFull($testIssueIds: [String!], $testExecIssueIds: [String!], $testPlanIssueIds: [String!]) {
+    getDatasets(testIssueIds: $testIssueIds, testExecIssueIds: $testExecIssueIds, testPlanIssueIds: $testPlanIssueIds) {
+      id
+      testIssueId
+      testExecIssueId
+      testPlanIssueId
+      parameters {
         name
-        totalRows
-        parameters {
-          name
-        }
-        rows
+      }
+      rows {
+        order
+        Values
       }
     }
   }
@@ -149,25 +145,28 @@ export const LIST_DATASETS_FULL = `
 
 // ─── Settings Queries ─────────────────────────────────────────────────────────
 
-/** Get project settings including test types, step statuses, test statuses. */
+/** Get project settings including test type settings, environments, and coverage config. */
 export const GET_PROJECT_SETTINGS = `
-  query GetProjectSettings($projectId: String!) {
-    getProjectSettings(projectId: $projectId) {
+  query GetProjectSettings($projectIdOrKey: String!) {
+    getProjectSettings(projectIdOrKey: $projectIdOrKey) {
       projectId
-      testTypes {
-        name
-        kind
+      testEnvironments
+      testTypeSettings {
+        testTypes { name kind }
+        defaultTestTypeId
       }
-      stepStatuses {
-        name
-        color
-        description
+      testStepSettings {
+        fields { id name }
       }
-      testStatuses {
-        name
-        color
-        description
+      testRunCustomFieldSettings {
+        fields { id name }
       }
+      testCoverageSettings {
+        coverableIssueTypeIds
+        epicIssuesRelation
+        issueSubTasksRelation
+      }
+      defectIssueTypes
     }
   }
 `;

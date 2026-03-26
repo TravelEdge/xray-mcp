@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { ADD_DEFECTS_TO_STEP } from "./queries.js";
 
 registerTool({
@@ -11,17 +11,17 @@ registerTool({
     "For Jira issue fields, use the Atlassian MCP server instead.",
   accessLevel: "write",
   inputSchema: z.object({
-    runId: z.string().describe("Test run internal ID"),
+    testRunId: z.string().describe("Test run internal ID"),
     stepId: z.string().describe("Test run step internal ID"),
-    issueIds: z.array(z.string()).describe("Jira issue keys to link as defects, e.g. ['PROJ-123']"),
+    issues: z.array(z.string()).describe("Jira issue keys to link as defects, e.g. ['PROJ-123']"),
     format: FORMAT_PARAM,
   }),
   handler: async (args, _ctx) => {
     const client = args._client as XrayClient;
     await client.executeGraphQL(ADD_DEFECTS_TO_STEP, {
-      runId: args.runId,
+      testRunId: args.testRunId,
       stepId: args.stepId,
-      issueIds: args.issueIds,
+      issues: args.issues,
     });
     return {
       content: [
@@ -29,8 +29,8 @@ registerTool({
           type: "text" as const,
           text: writeConfirmation(
             "UPDATED",
-            `${String(args.runId)}/step:${String(args.stepId)}`,
-            `defects:${(args.issueIds as string[]).join(",")}`,
+            `${String(args.testRunId)}/step:${String(args.stepId)}`,
+            `defects:${(args.issues as string[]).join(",")}`,
           ),
         },
       ],

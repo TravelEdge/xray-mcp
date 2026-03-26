@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { ADD_EVIDENCE_TO_STEP } from "./queries.js";
 
 registerTool({
@@ -12,7 +12,7 @@ registerTool({
     "Use the Read tool or user attachment to obtain base64 content before calling this tool.",
   accessLevel: "write",
   inputSchema: z.object({
-    runId: z.string().describe("Test run internal ID"),
+    testRunId: z.string().describe("Test run internal ID"),
     stepId: z.string().describe("Test run step internal ID"),
     content: z
       .string()
@@ -24,15 +24,14 @@ registerTool({
   }),
   handler: async (args, _ctx) => {
     const client = args._client as XrayClient;
-    // Pitfall 7: map mimeType (LLM-friendly name) to mediaType (Xray GraphQL field name)
     await client.executeGraphQL(ADD_EVIDENCE_TO_STEP, {
-      runId: args.runId,
+      testRunId: args.testRunId,
       stepId: args.stepId,
       evidence: [
         {
           data: args.content,
           filename: args.filename,
-          mediaType: args.mimeType,
+          mimeType: args.mimeType,
         },
       ],
     });
@@ -42,7 +41,7 @@ registerTool({
           type: "text" as const,
           text: writeConfirmation(
             "UPDATED",
-            `${String(args.runId)}/step:${String(args.stepId)}`,
+            `${String(args.testRunId)}/step:${String(args.stepId)}`,
             `evidence:${String(args.filename)}`,
           ),
         },

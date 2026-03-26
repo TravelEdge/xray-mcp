@@ -6,10 +6,10 @@ import { TOOL_REGISTRY } from "../registry.js";
 import "./index.js";
 
 import {
-  mockGetRunNullResponse,
   mockGetRunByIdNullResponse,
-  mockGetRunResponse,
   mockGetRunByIdResponse,
+  mockGetRunNullResponse,
+  mockGetRunResponse,
   mockListRunsByIdResponse,
   mockListRunsResponse,
   mockResetRunResponse,
@@ -119,10 +119,7 @@ describe("xray_get_test_run_by_id", () => {
   it("returns TOON formatted run on success", async () => {
     const client = makeMockClient(mockGetRunByIdResponse);
     const tool = findTool("xray_get_test_run_by_id");
-    const result = await tool.handler(
-      { id: "run-42", format: "toon", _client: client },
-      ctx,
-    );
+    const result = await tool.handler({ id: "run-42", format: "toon", _client: client }, ctx);
 
     expect(result.content[0].text).toContain("run-42");
     expect(vi.mocked(client.executeGraphQL)).toHaveBeenCalledWith(
@@ -134,10 +131,7 @@ describe("xray_get_test_run_by_id", () => {
   it("returns no-data message when getTestRunById is null", async () => {
     const client = makeMockClient(mockGetRunByIdNullResponse);
     const tool = findTool("xray_get_test_run_by_id");
-    const result = await tool.handler(
-      { id: "run-999", format: "toon", _client: client },
-      ctx,
-    );
+    const result = await tool.handler({ id: "run-999", format: "toon", _client: client }, ctx);
 
     expect(result.content[0].text).toContain("no test run found");
     expect(result.content[0].text).toContain("run-999");
@@ -164,7 +158,7 @@ describe("xray_list_test_runs", () => {
     expect(text).toContain("run-42");
     expect(vi.mocked(client.executeGraphQL)).toHaveBeenCalledWith(
       expect.stringContaining("ListTestRuns"),
-      expect.objectContaining({ testIssueId: "PROJ-123", limit: 50, start: 0 }),
+      expect.objectContaining({ testIssueIds: ["PROJ-123"], limit: 50, start: 0 }),
     );
   });
 
@@ -208,7 +202,7 @@ describe("xray_list_test_runs_by_id", () => {
     expect(text).toContain("run-42");
     expect(vi.mocked(client.executeGraphQL)).toHaveBeenCalledWith(
       expect.stringContaining("ListTestRunsById"),
-      { ids: ["run-42", "run-43"] },
+      { ids: ["run-42", "run-43"], limit: 2 },
     );
   });
 });
@@ -262,13 +256,12 @@ describe("xray_update_test_run_comment", () => {
 });
 
 describe("xray_update_test_run", () => {
-  it("returns OK:UPDATED with status in details", async () => {
+  it("returns OK:UPDATED with comment in details", async () => {
     const client = makeMockClient(mockUpdateRunResponse);
     const tool = findTool("xray_update_test_run");
     const result = await tool.handler(
       {
         id: "run-42",
-        status: "FAIL",
         comment: "Bug found",
         format: "toon",
         _client: client,
@@ -279,7 +272,7 @@ describe("xray_update_test_run", () => {
     const text = result.content[0].text;
     expect(text).toContain("OK:UPDATED");
     expect(text).toContain("run:run-42");
-    expect(text).toContain("FAIL");
+    expect(text).toContain("comment updated");
   });
 
   it("calls executeGraphQL with correct variables", async () => {
@@ -288,8 +281,7 @@ describe("xray_update_test_run", () => {
     await tool.handler(
       {
         id: "run-42",
-        status: "PASS",
-        assignee: "user-99",
+        assigneeId: "user-99",
         format: "toon",
         _client: client,
       },
@@ -298,7 +290,7 @@ describe("xray_update_test_run", () => {
 
     expect(vi.mocked(client.executeGraphQL)).toHaveBeenCalledWith(
       expect.stringContaining("UpdateTestRun"),
-      expect.objectContaining({ id: "run-42", status: "PASS", assignee: "user-99" }),
+      expect.objectContaining({ id: "run-42", assigneeId: "user-99" }),
     );
   });
 });
@@ -307,10 +299,7 @@ describe("xray_reset_test_run", () => {
   it("returns OK:UPDATED with reset message", async () => {
     const client = makeMockClient(mockResetRunResponse);
     const tool = findTool("xray_reset_test_run");
-    const result = await tool.handler(
-      { id: "run-42", format: "toon", _client: client },
-      ctx,
-    );
+    const result = await tool.handler({ id: "run-42", format: "toon", _client: client }, ctx);
 
     const text = result.content[0].text;
     expect(text).toContain("OK:UPDATED");
@@ -330,7 +319,7 @@ describe("xray_update_step_status", () => {
     const tool = findTool("xray_update_step_status");
     const result = await tool.handler(
       {
-        runId: "run-42",
+        testRunId: "run-42",
         stepId: "step-1",
         status: "PASS",
         format: "toon",
@@ -345,8 +334,8 @@ describe("xray_update_step_status", () => {
     expect(text).toContain("step:step-1");
     expect(text).toContain("PASS");
     expect(vi.mocked(client.executeGraphQL)).toHaveBeenCalledWith(
-      expect.stringContaining("UpdateStepStatus"),
-      { runId: "run-42", stepId: "step-1", status: "PASS" },
+      expect.stringContaining("UpdateTestRunStepStatus"),
+      { testRunId: "run-42", stepId: "step-1", status: "PASS", iterationRank: null },
     );
   });
 });
@@ -357,7 +346,7 @@ describe("xray_update_step_comment", () => {
     const tool = findTool("xray_update_step_comment");
     const result = await tool.handler(
       {
-        runId: "run-42",
+        testRunId: "run-42",
         stepId: "step-1",
         comment: "Step completed",
         format: "toon",
@@ -378,10 +367,12 @@ describe("xray_update_test_run_step", () => {
     const tool = findTool("xray_update_test_run_step");
     const result = await tool.handler(
       {
-        runId: "run-42",
+        testRunId: "run-42",
         stepId: "step-1",
-        status: "FAIL",
-        comment: "Login page not loading",
+        updateData: {
+          status: "FAIL",
+          comment: "Login page not loading",
+        },
         format: "toon",
         _client: client,
       },
@@ -399,9 +390,11 @@ describe("xray_update_test_run_step", () => {
     const tool = findTool("xray_update_test_run_step");
     await tool.handler(
       {
-        runId: "run-42",
+        testRunId: "run-42",
         stepId: "step-1",
-        defects: ["PROJ-789"],
+        updateData: {
+          defects: ["PROJ-789"],
+        },
         format: "toon",
         _client: client,
       },
@@ -410,19 +403,22 @@ describe("xray_update_test_run_step", () => {
 
     expect(vi.mocked(client.executeGraphQL)).toHaveBeenCalledWith(
       expect.stringContaining("UpdateTestRunStep"),
-      expect.objectContaining({ runId: "run-42", stepId: "step-1", defects: ["PROJ-789"] }),
+      expect.objectContaining({
+        testRunId: "run-42",
+        stepId: "step-1",
+        updateData: { defects: ["PROJ-789"] },
+      }),
     );
   });
 });
 
 describe("xray_update_example_status", () => {
-  it("returns OK:UPDATED with example index and status", async () => {
+  it("returns OK:UPDATED with example ID and status", async () => {
     const client = makeMockClient(mockUpdateExampleStatusResponse);
     const tool = findTool("xray_update_example_status");
     const result = await tool.handler(
       {
-        runId: "run-42",
-        exampleIndex: 0,
+        exampleId: "example-1",
         status: "PASS",
         format: "toon",
         _client: client,
@@ -432,23 +428,23 @@ describe("xray_update_example_status", () => {
 
     const text = result.content[0].text;
     expect(text).toContain("OK:UPDATED");
-    expect(text).toContain("run:run-42/example:0");
+    expect(text).toContain("example:example-1");
     expect(text).toContain("PASS");
     expect(vi.mocked(client.executeGraphQL)).toHaveBeenCalledWith(
-      expect.stringContaining("UpdateExampleStatus"),
-      { runId: "run-42", exampleIndex: 0, status: "PASS" },
+      expect.stringContaining("UpdateTestRunExampleStatus"),
+      { exampleId: "example-1", status: "PASS" },
     );
   });
 });
 
 describe("xray_update_iteration_status", () => {
-  it("returns OK:UPDATED with iteration index and status", async () => {
+  it("returns OK:UPDATED with iteration rank and status", async () => {
     const client = makeMockClient(mockUpdateIterationStatusResponse);
     const tool = findTool("xray_update_iteration_status");
     const result = await tool.handler(
       {
-        runId: "run-42",
-        iterationIndex: 1,
+        testRunId: "run-42",
+        iterationRank: "1",
         status: "FAIL",
         format: "toon",
         _client: client,
@@ -462,39 +458,39 @@ describe("xray_update_iteration_status", () => {
     expect(text).toContain("FAIL");
     expect(vi.mocked(client.executeGraphQL)).toHaveBeenCalledWith(
       expect.stringContaining("UpdateIterationStatus"),
-      { runId: "run-42", iterationIndex: 1, status: "FAIL" },
+      { testRunId: "run-42", iterationRank: "1", status: "FAIL" },
     );
   });
 });
 
 describe("xray_set_test_run_timer", () => {
-  it("returns OK:UPDATED with timer:start", async () => {
+  it("returns OK:UPDATED with running:true", async () => {
     const client = makeMockClient(mockSetRunTimerResponse);
     const tool = findTool("xray_set_test_run_timer");
     const result = await tool.handler(
-      { id: "run-42", action: "start", format: "toon", _client: client },
+      { testRunId: "run-42", running: true, format: "toon", _client: client },
       ctx,
     );
 
     const text = result.content[0].text;
     expect(text).toContain("OK:UPDATED");
     expect(text).toContain("run:run-42");
-    expect(text).toContain("timer:start");
+    expect(text).toContain("running:true");
     expect(vi.mocked(client.executeGraphQL)).toHaveBeenCalledWith(
       expect.stringContaining("SetTestRunTimer"),
-      { id: "run-42", action: "start" },
+      { testRunId: "run-42", running: true, reset: null },
     );
   });
 
-  it("returns OK:UPDATED with timer:stop", async () => {
+  it("returns OK:UPDATED with running:false", async () => {
     const client = makeMockClient(mockSetRunTimerResponse);
     const tool = findTool("xray_set_test_run_timer");
     const result = await tool.handler(
-      { id: "run-42", action: "stop", format: "toon", _client: client },
+      { testRunId: "run-42", running: false, format: "toon", _client: client },
       ctx,
     );
 
-    expect(result.content[0].text).toContain("timer:stop");
+    expect(result.content[0].text).toContain("running:false");
   });
 });
 

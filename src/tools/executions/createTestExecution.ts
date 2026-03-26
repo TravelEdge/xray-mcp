@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { CREATE_EXECUTION } from "./queries.js";
 
 interface CreateExecutionResponse {
@@ -15,20 +15,29 @@ interface CreateExecutionResponse {
 }
 
 const inputSchema = z.object({
-  projectKey: z.string().describe("Jira project key, e.g. PROJ"),
-  summary: z.string().describe("Test execution summary/title"),
+  jira: z
+    .record(z.unknown())
+    .describe(
+      'Jira fields JSON object, e.g. { "fields": { "summary": "...", "project": { "key": "PROJ" } } }',
+    ),
   testIssueIds: z
     .array(z.string())
     .optional()
     .describe("Issue keys of tests to add to this execution"),
-  environments: z
+  tests: z
+    .array(
+      z.object({
+        testIssueId: z.string().describe("Test issue key"),
+        version: z.string().optional().describe("Version name"),
+        revision: z.string().optional().describe("Revision identifier"),
+      }),
+    )
+    .optional()
+    .describe("Tests with version info to add to this execution"),
+  testEnvironments: z
     .array(z.string())
     .optional()
     .describe("Test environment names, e.g. ['Chrome', 'Firefox']"),
-  testPlanIssueId: z
-    .string()
-    .optional()
-    .describe("Issue key of the test plan to link this execution to"),
   format: FORMAT_PARAM,
 });
 
@@ -40,18 +49,28 @@ registerTool({
   accessLevel: "write",
   inputSchema,
   handler: async (args, _ctx) => {
-    const { projectKey, summary, testIssueIds, environments, testPlanIssueId, format } =
-      args as z.infer<typeof inputSchema>;
+    const { jira, testIssueIds, tests, testEnvironments, format } = args as z.infer<
+      typeof inputSchema
+    >;
     const client = args._client as XrayClient;
 
-    const testExecution: Record<string, unknown> = { projectKey, summary };
-    if (testIssueIds) testExecution.testIssueIds = testIssueIds;
-    if (environments) testExecution.environments = environments;
-    if (testPlanIssueId) testExecution.testPlanIssueId = testPlanIssueId;
+    const variables: Record<string, unknown> = { jira };
+    if (testIssueIds) variables.testIssueIds = testIssueIds;
+    if (tests) variables.tests = tests;
+    if (testEnvironments) variables.testEnvironments = testEnvironments;
 
-    const data = await client.executeGraphQL<CreateExecutionResponse>(CREATE_EXECUTION, {
-      testExecution,
-    });
+    const data = await client.executeGraphQL<CreateExecutionResponse>(CREATE_EXECUTION, variables);
+
+    if (!data.createTestExecution?.testExecution) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "ERR:CREATE_FAILED Test execution creation returned no data",
+          },
+        ],
+      };
+    }
 
     const { testExecution: exec, warnings } = data.createTestExecution;
 
@@ -62,6 +81,7 @@ registerTool({
     }
 
     const key = exec.jira?.key ?? exec.issueId;
+    const summary = exec.jira?.summary ?? "";
     const testCount = testIssueIds?.length ?? 0;
     const warnStr = warnings?.length ? ` | warn:${warnings[0]}` : "";
     const details = `s:${summary}${testCount > 0 ? ` | ${testCount} tests` : ""}${warnStr}`;

@@ -59,7 +59,8 @@ function formatTest(data: AnyRecord): string {
   const testType = (data.testType as AnyRecord | undefined)?.name;
   const status = (data.status as AnyRecord | undefined)?.name;
   const folder = (data.folder as AnyRecord | undefined)?.path;
-  const steps = (data.steps as AnyRecord | undefined)?.nodes;
+  const rawSteps = data.steps;
+  const steps = Array.isArray(rawSteps) ? rawSteps : (rawSteps as AnyRecord | undefined)?.nodes;
   const stepCount = Array.isArray(steps) ? steps.length : 0;
 
   const icon = statusIcon(safe(status));
@@ -83,7 +84,8 @@ function formatTestExecution(data: AnyRecord): string {
   const issueId = safe(data.issueId);
   const jira = data.jira as AnyRecord | undefined;
   const summary = truncate(safe(jira?.summary));
-  const runs = (data.testRuns as AnyRecord | undefined)?.nodes;
+  const rawRuns = data.testRuns as AnyRecord | undefined;
+  const runs = rawRuns?.results ?? rawRuns?.nodes;
   const runCount = Array.isArray(runs) ? runs.length : 0;
   const envs = data.testEnvironments;
   const envStr = Array.isArray(envs) && envs.length ? `env:${envs.join(",")}` : "";
@@ -99,8 +101,10 @@ function formatTestPlan(data: AnyRecord): string {
   const issueId = safe(data.issueId);
   const jira = data.jira as AnyRecord | undefined;
   const summary = truncate(safe(jira?.summary));
-  const tests = (data.tests as AnyRecord | undefined)?.nodes;
-  const execs = (data.testExecutions as AnyRecord | undefined)?.nodes;
+  const rawTests = data.tests as AnyRecord | undefined;
+  const tests = rawTests?.results ?? rawTests?.nodes;
+  const rawExecs = data.testExecutions as AnyRecord | undefined;
+  const execs = rawExecs?.results ?? rawExecs?.nodes;
   const testCount = Array.isArray(tests) ? tests.length : 0;
   const execCount = Array.isArray(execs) ? execs.length : 0;
 
@@ -114,7 +118,8 @@ function formatTestSet(data: AnyRecord): string {
   const issueId = safe(data.issueId);
   const jira = data.jira as AnyRecord | undefined;
   const summary = truncate(safe(jira?.summary));
-  const tests = (data.tests as AnyRecord | undefined)?.nodes;
+  const rawTests = data.tests as AnyRecord | undefined;
+  const tests = rawTests?.results ?? rawTests?.nodes;
   const testCount = Array.isArray(tests) ? tests.length : 0;
 
   const parts: string[] = [`[${issueId}]`];
@@ -173,12 +178,12 @@ function formatCoverage(data: AnyRecord): string {
 }
 
 function formatDataset(data: AnyRecord): string {
-  const name = safe(data.name);
-  const rows = data.rows !== undefined ? Number(data.rows) : 0;
+  const id = safe(data.id);
+  const rows = Array.isArray(data.rows) ? data.rows.length : 0;
   const params = data.parameters;
   const paramCount = Array.isArray(params) ? params.length : 0;
 
-  const parts: string[] = [name ? `[${name}]` : "[dataset]"];
+  const parts: string[] = [id ? `[${id}]` : "[dataset]"];
   parts.push(`| ${rows} rows, ${paramCount} params`);
   return parts.join(" ");
 }

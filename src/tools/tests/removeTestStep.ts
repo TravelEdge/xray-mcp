@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { REMOVE_TEST_STEP } from "./queries.js";
 
 registerTool({
@@ -9,17 +9,16 @@ registerTool({
   description: "Remove a specific step from a Manual Xray test by step ID.",
   accessLevel: "write",
   inputSchema: z.object({
-    issueId: z.string().describe("The Jira issue ID of the test (e.g. PROJ-123)"),
     stepId: z.string().describe("The ID of the step to remove"),
     format: FORMAT_PARAM,
   }),
   handler: async (args, _ctx) => {
-    const { issueId, stepId } = args as { issueId: string; stepId: string };
+    const { stepId } = args as { stepId: string };
     const client = args._client as XrayClient;
 
-    await client.executeGraphQL(REMOVE_TEST_STEP, { issueId, stepId });
+    await client.executeGraphQL(REMOVE_TEST_STEP, { stepId });
 
-    const text = writeConfirmation("DELETED", issueId, `step:${stepId}`);
+    const text = writeConfirmation("DELETED", stepId, `step:${stepId}`);
     return { content: [{ type: "text" as const, text }] };
   },
 });

@@ -1,20 +1,16 @@
 import { z } from "zod";
-import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
+import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import { registerTool } from "../registry.js";
-import { LIST_RUNS_BY_ID_TOON, LIST_RUNS_BY_ID_FULL } from "./queries.js";
+import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
+import { LIST_RUNS_BY_ID_FULL, LIST_RUNS_BY_ID_TOON } from "./queries.js";
 
 registerTool({
   name: "xray_list_test_runs_by_id",
-  description:
-    "Get multiple test runs by their internal Xray run IDs in a single request.",
+  description: "Get multiple test runs by their internal Xray run IDs in a single request.",
   accessLevel: "read",
   inputSchema: z.object({
-    ids: z
-      .array(z.string())
-      .min(1)
-      .describe("Array of internal Xray test run IDs"),
+    ids: z.array(z.string()).min(1).describe("Array of internal Xray test run IDs"),
     format: FORMAT_PARAM,
   }),
   handler: async (args, _ctx) => {
@@ -22,17 +18,16 @@ registerTool({
     const format = (args.format as string) ?? "toon";
     const query = selectQuery(format, LIST_RUNS_BY_ID_TOON, LIST_RUNS_BY_ID_FULL);
 
+    const ids = args.ids as string[];
     const data = await client.executeGraphQL<{
-      getTestRunsById: unknown[];
-    }>(query, { ids: args.ids });
+      getTestRunsById: { total: number; results: unknown[] };
+    }>(query, { ids, limit: ids.length });
 
-    const results = data.getTestRunsById ?? [];
+    const results = data.getTestRunsById?.results ?? [];
 
     if (format === "json") {
       return {
-        content: [
-          { type: "text" as const, text: JSON.stringify(results, null, 2) },
-        ],
+        content: [{ type: "text" as const, text: JSON.stringify(results, null, 2) }],
       };
     }
 

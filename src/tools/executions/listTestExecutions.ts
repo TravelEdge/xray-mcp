@@ -1,10 +1,10 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
-import { FORMAT_PARAM, paginationHeader, selectQuery } from "../shared/formatHelpers.js";
-import { PAGINATION_PARAMS, JQL_PARAM } from "../shared/types.js";
 import { registerTool } from "../registry.js";
-import { LIST_EXECUTIONS_TOON, LIST_EXECUTIONS_FULL } from "./queries.js";
+import { FORMAT_PARAM, paginationHeader, selectQuery } from "../shared/formatHelpers.js";
+import { JQL_PARAM, PAGINATION_PARAMS } from "../shared/types.js";
+import { LIST_EXECUTIONS_FULL, LIST_EXECUTIONS_TOON } from "./queries.js";
 
 interface ExecutionResult {
   issueId: string;

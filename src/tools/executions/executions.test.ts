@@ -5,14 +5,14 @@ import { TOOL_REGISTRY } from "../registry.js";
 import "./index.js";
 
 import {
-  EXEC_FIXTURE,
-  EXEC_LIST_FIXTURE,
+  ADD_ENVS_FIXTURE,
+  ADD_TESTS_FIXTURE,
   CREATE_EXEC_FIXTURE,
   DELETE_EXEC_FIXTURE,
-  ADD_TESTS_FIXTURE,
-  REMOVE_TESTS_FIXTURE,
-  ADD_ENVS_FIXTURE,
+  EXEC_FIXTURE,
+  EXEC_LIST_FIXTURE,
   REMOVE_ENVS_FIXTURE,
+  REMOVE_TESTS_FIXTURE,
 } from "./fixtures.js";
 
 // ---------------------------------------------------------------------------
@@ -153,8 +153,7 @@ describe("Execution Tools", () => {
       mockExecuteGraphQL.mockResolvedValue(CREATE_EXEC_FIXTURE);
 
       const result = await invokeTool("xray_create_test_execution", {
-        projectKey: "PROJ",
-        summary: "New Test Execution",
+        jira: { fields: { summary: "New Test Execution", project: { key: "PROJ" } } },
         format: "toon",
       });
 
@@ -167,8 +166,7 @@ describe("Execution Tools", () => {
       mockExecuteGraphQL.mockResolvedValue(CREATE_EXEC_FIXTURE);
 
       const result = await invokeTool("xray_create_test_execution", {
-        projectKey: "PROJ",
-        summary: "New Test Execution",
+        jira: { fields: { summary: "New Test Execution", project: { key: "PROJ" } } },
         testIssueIds: ["PROJ-1", "PROJ-2"],
         format: "toon",
       });
@@ -181,8 +179,7 @@ describe("Execution Tools", () => {
       mockExecuteGraphQL.mockResolvedValue(CREATE_EXEC_FIXTURE);
 
       const result = await invokeTool("xray_create_test_execution", {
-        projectKey: "PROJ",
-        summary: "New Test Execution",
+        jira: { fields: { summary: "New Test Execution", project: { key: "PROJ" } } },
         format: "json",
       });
 
@@ -288,7 +285,7 @@ describe("Execution Tools", () => {
 
       const result = await invokeTool("xray_add_environments_to_execution", {
         issueId: "PROJ-456",
-        environments: ["Safari"],
+        testEnvironments: ["Safari"],
         format: "toon",
       });
 
@@ -303,7 +300,7 @@ describe("Execution Tools", () => {
 
       const result = await invokeTool("xray_add_environments_to_execution", {
         issueId: "PROJ-456",
-        environments: ["Safari"],
+        testEnvironments: ["Safari"],
         format: "json",
       });
 
@@ -322,14 +319,13 @@ describe("Execution Tools", () => {
 
       const result = await invokeTool("xray_remove_environments_from_execution", {
         issueId: "PROJ-456",
-        environments: ["Chrome"],
+        testEnvironments: ["Chrome"],
         format: "toon",
       });
 
       const text = result.content[0].text;
       expect(text).toContain("OK:UPDATED");
       expect(text).toContain("PROJ-456");
-      expect(text).toContain("envs:");
     });
 
     it("returns JSON of updated environments when format=json", async () => {
@@ -337,13 +333,12 @@ describe("Execution Tools", () => {
 
       const result = await invokeTool("xray_remove_environments_from_execution", {
         issueId: "PROJ-456",
-        environments: ["Chrome"],
+        testEnvironments: ["Chrome"],
         format: "json",
       });
 
       const parsed = JSON.parse(result.content[0].text);
-      expect(parsed.issueId).toBe("PROJ-456");
-      expect(parsed.testEnvironments).toContain("Firefox");
+      expect(parsed.removed).toBe("OK");
     });
   });
 
@@ -401,9 +396,7 @@ describe("Execution Tools", () => {
     });
 
     it("xray_remove_environments_from_execution is registered with write access", () => {
-      const tool = TOOL_REGISTRY.find(
-        (t) => t.name === "xray_remove_environments_from_execution",
-      );
+      const tool = TOOL_REGISTRY.find((t) => t.name === "xray_remove_environments_from_execution");
       expect(tool).toBeDefined();
       expect(tool?.accessLevel).toBe("write");
     });

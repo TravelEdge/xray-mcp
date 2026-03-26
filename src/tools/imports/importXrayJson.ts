@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM } from "../shared/formatHelpers.js";
-import { buildMultipartBody, buildQueryParams } from "../shared/formatHelpers.js";
+import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import { registerTool } from "../registry.js";
+import { buildMultipartBody, buildQueryParams, FORMAT_PARAM } from "../shared/formatHelpers.js";
 
 /** Shared testExecInfo schema for multipart-capable import tools (REST-02). */
 const TEST_EXEC_INFO = z
@@ -33,9 +32,7 @@ registerTool({
   inputSchema: z.object({
     content: z
       .string()
-      .describe(
-        "Xray JSON format test results as a string. Pass the complete JSON content.",
-      ),
+      .describe("Xray JSON format test results as a string. Pass the complete JSON content."),
     projectKey: z.string().optional().describe("Jira project key"),
     testExecKey: z.string().optional().describe("Existing test execution key to update"),
     testPlanKey: z.string().optional().describe("Test plan key to associate results with"),
@@ -78,7 +75,20 @@ registerTool({
         testExecKey: testExecKey as string | undefined,
         testPlanKey: testPlanKey as string | undefined,
       });
-      result = await client.executeRest("POST", `${BASE_PATH}${queryString}`, JSON.parse(content));
+      let parsedContent: unknown;
+      try {
+        parsedContent = JSON.parse(content);
+      } catch {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: "ERR:INVALID_JSON Invalid JSON content — check that the input is valid Xray JSON format",
+            },
+          ],
+        };
+      }
+      result = await client.executeRest("POST", `${BASE_PATH}${queryString}`, parsedContent);
     }
 
     return {

@@ -37,8 +37,11 @@ export const mockGetPreconditionResponse = {
 
 export const mockCreatePreconditionResponse = {
   createPrecondition: {
-    issueId: "PC-3",
-    jira: { key: "PC-3" },
+    precondition: {
+      issueId: "PC-3",
+      jira: { key: "PC-3" },
+    },
+    warnings: [],
   },
 };
 

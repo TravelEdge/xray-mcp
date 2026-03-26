@@ -50,11 +50,14 @@ Config file: `~/Library/Application Support/Claude/claude_desktop_config.json` (
       "env": {
         "XRAY_CLIENT_ID": "your-client-id",
         "XRAY_CLIENT_SECRET": "your-client-secret"
-      }
+      },
+      "autoApprove": ["xray_get_*", "xray_list_*"]
     }
   }
 }
 ```
+
+> **Tip:** `autoApprove` skips the per-tool confirmation dialog for read-only tools. Remove it if you prefer manual approval for every call.
 
 **HTTP (connect to a running server)**
 
@@ -191,9 +194,17 @@ services:
 
 ```bash
 docker build -t xray-mcp:local .
+
+# Run local build
+docker run -d \
+  -e XRAY_CLIENT_ID=your-client-id \
+  -e XRAY_CLIENT_SECRET=your-client-secret \
+  -e XRAY_CREDENTIAL_MODE=fully-shared \
+  -p 3000:3000 \
+  xray-mcp:local
 ```
 
-The Dockerfile uses a multi-stage build: `node:24-alpine` builder stage compiles TypeScript; the runtime stage copies only `dist/` and production `node_modules` for a minimal image.
+The Dockerfile uses a multi-stage build: `node:24-alpine` builder stage compiles TypeScript; the runtime stage copies only `dist/` and production `node_modules` for a minimal image (~50MB). Runs as non-root `node` user with `tini` as PID 1 for proper signal handling.
 
 ## Kubernetes / Helm Deployment
 
@@ -235,6 +246,46 @@ helm install xray-mcp ./helm \
 ```
 
 The Secret must contain keys `XRAY_CLIENT_ID` and `XRAY_CLIENT_SECRET`.
+
+### Production deployment with Ingress and TLS
+
+```bash
+helm install xray-mcp ./helm \
+  --set existingSecret=my-xray-credentials \
+  --set xray.credentialMode=shared-reads \
+  --set xray.region=us \
+  --set ingress.enabled=true \
+  --set ingress.className=nginx \
+  --set ingress.hosts[0].host=xray-mcp.yourcompany.com \
+  --set ingress.hosts[0].paths[0].path=/ \
+  --set ingress.hosts[0].paths[0].pathType=Prefix \
+  --set ingress.tls[0].secretName=xray-mcp-tls \
+  --set ingress.tls[0].hosts[0]=xray-mcp.yourcompany.com \
+  --set autoscaling.enabled=true \
+  --set autoscaling.maxReplicas=3
+```
+
+### Connecting MCP clients to Helm deployment
+
+Once deployed, configure your MCP client to use the HTTP transport pointing to the Ingress URL:
+
+```json
+{
+  "mcpServers": {
+    "xray": {
+      "transport": "http",
+      "url": "https://xray-mcp.yourcompany.com/mcp",
+      "headers": {
+        "X-Xray-Client-Id": "your-client-id",
+        "X-Xray-Client-Secret": "your-client-secret"
+      },
+      "autoApprove": ["xray_get_*", "xray_list_*"]
+    }
+  }
+}
+```
+
+In `fully-shared` mode, the headers are optional — the server uses its own credentials for all operations.
 
 ## Environment Variables
 
@@ -349,6 +400,31 @@ TRANSPORT=http XRAY_CLIENT_ID=your-id XRAY_CLIENT_SECRET=your-secret node dist/i
 | `pnpm test:coverage` | Run tests with V8 coverage report |
 | `pnpm lint` | Run Biome linter and formatter check |
 | `pnpm lint:fix` | Auto-fix lint and formatting issues |
+| `pnpm introspect` | Introspect live Xray Cloud GraphQL schema (requires credentials) |
+| `pnpm introspect:audit` | Audit all 90 tools against the live schema — reports mismatches |
+
+## Schema Verification
+
+The project includes an introspection script that validates all GraphQL queries against the live Xray Cloud API schema. This catches field renames, removed arguments, and type mismatches before they reach production.
+
+```bash
+# Requires XRAY_CLIENT_ID and XRAY_CLIENT_SECRET
+export XRAY_CLIENT_ID=your-id
+export XRAY_CLIENT_SECRET=your-secret
+
+# Introspect schema and save to schema/ directory
+pnpm introspect
+
+# Audit all tools against the live schema
+pnpm introspect:audit
+```
+
+The audit checks every query and mutation for:
+- Root field existence (e.g., `getTest` exists on Query type)
+- Argument names and types match the schema
+- Deprecated fields
+
+Results are written to `schema/audit-report.md`. The `schema/` directory is gitignored — each developer runs against their own Xray instance.
 
 ## Contributing
 

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { CREATE_PLAN } from "./queries.js";
 
 interface CreatePlanResponse {
@@ -14,8 +14,15 @@ interface CreatePlanResponse {
 }
 
 const inputSchema = z.object({
-  projectKey: z.string().describe("Jira project key where the test plan will be created (e.g. 'PROJ')"),
-  summary: z.string().describe("Summary/title for the new test plan"),
+  jira: z
+    .record(z.unknown())
+    .describe(
+      'Jira field payload (JSON object) — must include at minimum the project key and summary, e.g. {"fields":{"project":{"key":"PROJ"},"summary":"My Plan"}}',
+    ),
+  savedFilter: z
+    .string()
+    .optional()
+    .describe("Optional saved filter ID to associate with the test plan"),
   testIssueIds: z
     .array(z.string())
     .optional()
@@ -26,20 +33,27 @@ const inputSchema = z.object({
 registerTool({
   name: "xray_create_test_plan",
   description:
-    "Create a new Xray test plan in a Jira project. Optionally add tests immediately on creation.",
+    "Create a new Xray test plan via Jira JSON payload. Optionally add tests immediately on creation.",
   accessLevel: "write",
   inputSchema,
   handler: async (args, _ctx) => {
-    const { projectKey, summary, testIssueIds, format } = args as z.infer<typeof inputSchema>;
+    const { jira, savedFilter, testIssueIds, format } = args as z.infer<typeof inputSchema>;
     const client = args._client as XrayClient;
 
     const data = await client.executeGraphQL<CreatePlanResponse>(CREATE_PLAN, {
-      projectKey,
-      summary,
+      jira,
+      savedFilter,
       testIssueIds,
     });
 
-    const plan = data.createTestPlan.testPlan;
+    const plan = data.createTestPlan?.testPlan;
+    if (!plan) {
+      return {
+        content: [
+          { type: "text" as const, text: "ERR:CREATE_FAILED Test plan creation returned no data" },
+        ],
+      };
+    }
     const key = plan.jira?.key ?? plan.issueId;
 
     if (format === "json") {
@@ -48,8 +62,7 @@ registerTool({
       };
     }
 
-    const details = `s:${summary}`;
-    const text = writeConfirmation("CREATED", key, details);
+    const text = writeConfirmation("CREATED", key, "");
     return { content: [{ type: "text" as const, text }] };
   },
 });

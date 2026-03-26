@@ -45,10 +45,10 @@ export const GET_RUN_FULL = `
         comment
         action
         result
-        evidence { id filename mimeType size }
-        defects { id summary status { name } }
+        evidence { id filename downloadLink size createdOn }
+        defects
       }
-      customFields { id name value }
+      customFields { id name values }
     }
   }
 `;
@@ -94,10 +94,10 @@ export const GET_RUN_BY_ID_FULL = `
         comment
         action
         result
-        evidence { id filename mimeType size }
-        defects { id summary status { name } }
+        evidence { id filename downloadLink size createdOn }
+        defects
       }
-      customFields { id name value }
+      customFields { id name values }
     }
   }
 `;
@@ -111,8 +111,8 @@ export const GET_RUN_BY_ID_FULL = `
  *    results.status, results.comment, results.startedOn)
  */
 export const LIST_RUNS_TOON = `
-  query ListTestRunsToon($testIssueId: String!, $limit: Int!, $start: Int, $testEnvironments: [String]) {
-    getTestRuns(testIssueId: $testIssueId, limit: $limit, start: $start, testEnvironments: $testEnvironments) {
+  query ListTestRunsToon($testIssueIds: [String!]!, $limit: Int!, $start: Int) {
+    getTestRuns(testIssueIds: $testIssueIds, limit: $limit, start: $start) {
       total
       results {
         id
@@ -134,8 +134,8 @@ export const LIST_RUNS_TOON = `
  *  SAFE: 15 < 25 resolver limit
  */
 export const LIST_RUNS_FULL = `
-  query ListTestRunsFull($testIssueId: String!, $limit: Int!, $start: Int, $testEnvironments: [String]) {
-    getTestRuns(testIssueId: $testIssueId, limit: $limit, start: $start, testEnvironments: $testEnvironments) {
+  query ListTestRunsFull($testIssueIds: [String!]!, $limit: Int!, $start: Int) {
+    getTestRuns(testIssueIds: $testIssueIds, limit: $limit, start: $start) {
       total
       results {
         id
@@ -152,7 +152,7 @@ export const LIST_RUNS_FULL = `
           action
           result
         }
-        customFields { id name value }
+        customFields { id name values }
       }
     }
   }
@@ -166,13 +166,16 @@ export const LIST_RUNS_FULL = `
  *  Resolver count: ~6 (getTestRunsById, id, status, comment, startedOn, finishedOn)
  */
 export const LIST_RUNS_BY_ID_TOON = `
-  query ListTestRunsByIdToon($ids: [String!]!) {
-    getTestRunsById(ids: $ids) {
-      id
-      status { name }
-      comment
-      startedOn
-      finishedOn
+  query ListTestRunsByIdToon($ids: [String!]!, $limit: Int!) {
+    getTestRunsById(ids: $ids, limit: $limit) {
+      total
+      results {
+        id
+        status { name }
+        comment
+        startedOn
+        finishedOn
+      }
     }
   }
 `;
@@ -184,25 +187,28 @@ export const LIST_RUNS_BY_ID_TOON = `
  *  SAFE: 13 < 25 resolver limit
  */
 export const LIST_RUNS_BY_ID_FULL = `
-  query ListTestRunsByIdFull($ids: [String!]!) {
-    getTestRunsById(ids: $ids) {
-      id
-      status { name color }
-      comment
-      executedById
-      assigneeId
-      startedOn
-      finishedOn
-      steps {
+  query ListTestRunsByIdFull($ids: [String!]!, $limit: Int!) {
+    getTestRunsById(ids: $ids, limit: $limit) {
+      total
+      results {
         id
         status { name color }
         comment
-        action
-        result
-        evidence { id filename mimeType size }
-        defects { id summary status { name } }
+        executedById
+        assigneeId
+        startedOn
+        finishedOn
+        steps {
+          id
+          status { name color }
+          comment
+          action
+          result
+          evidence { id filename downloadLink size createdOn }
+          defects
+        }
+        customFields { id name values }
       }
-      customFields { id name value }
     }
   }
 `;
@@ -225,10 +231,12 @@ export const UPDATE_RUN_COMMENT = `
   }
 `;
 
-/** Full update of a test run (status, comment, assignee, custom fields). */
+/** Full update of a test run (comment, assignee, dates, custom fields). */
 export const UPDATE_RUN = `
-  mutation UpdateTestRun($id: String!, $status: String, $comment: String, $assignee: String, $customFields: [CustomFieldInput]) {
-    updateTestRun(id: $id, status: $status, comment: $comment, assignee: $assignee, customFields: $customFields)
+  mutation UpdateTestRun($id: String!, $comment: String, $assigneeId: String, $startedOn: String, $finishedOn: String, $executedById: String, $customFields: [CustomFieldInput]) {
+    updateTestRun(id: $id, comment: $comment, assigneeId: $assigneeId, startedOn: $startedOn, finishedOn: $finishedOn, executedById: $executedById, customFields: $customFields) {
+      warnings
+    }
   }
 `;
 
@@ -241,42 +249,48 @@ export const RESET_RUN = `
 
 /** Update the status of a specific step within a test run. */
 export const UPDATE_STEP_STATUS = `
-  mutation UpdateStepStatus($runId: String!, $stepId: String!, $status: String!) {
-    updateStepStatus(runId: $runId, stepId: $stepId, status: $status)
+  mutation UpdateTestRunStepStatus($testRunId: String!, $stepId: String!, $status: String!, $iterationRank: String) {
+    updateTestRunStepStatus(testRunId: $testRunId, stepId: $stepId, status: $status, iterationRank: $iterationRank)
   }
 `;
 
 /** Update the comment of a specific step within a test run. */
 export const UPDATE_STEP_COMMENT = `
-  mutation UpdateStepComment($runId: String!, $stepId: String!, $comment: String!) {
-    updateStepComment(runId: $runId, stepId: $stepId, comment: $comment)
+  mutation UpdateTestRunStepComment($testRunId: String!, $stepId: String!, $comment: String!, $iterationRank: String) {
+    updateTestRunStepComment(testRunId: $testRunId, stepId: $stepId, comment: $comment, iterationRank: $iterationRank)
   }
 `;
 
-/** Full update of a test run step (status, comment, evidence, defects). */
+/** Full update of a test run step via UpdateTestRunStepInput. */
 export const UPDATE_RUN_STEP = `
-  mutation UpdateTestRunStep($runId: String!, $stepId: String!, $status: String, $comment: String, $evidence: [EvidenceInput], $defects: [String]) {
-    updateTestRunStep(runId: $runId, stepId: $stepId, status: $status, comment: $comment, evidence: $evidence, defects: $defects)
+  mutation UpdateTestRunStep($testRunId: String!, $stepId: String!, $updateData: UpdateTestRunStepInput!, $iterationRank: String) {
+    updateTestRunStep(testRunId: $testRunId, stepId: $stepId, updateData: $updateData, iterationRank: $iterationRank) {
+      addedDefects
+      removedDefects
+      addedEvidence
+      removedEvidence
+      warnings
+    }
   }
 `;
 
 /** Update the status of a specific example (data-driven/BDD test) within a test run. */
 export const UPDATE_EXAMPLE_STATUS = `
-  mutation UpdateExampleStatus($runId: String!, $exampleIndex: Int!, $status: String!) {
-    updateExampleStatus(runId: $runId, exampleIndex: $exampleIndex, status: $status)
+  mutation UpdateTestRunExampleStatus($exampleId: String!, $status: String!) {
+    updateTestRunExampleStatus(exampleId: $exampleId, status: $status)
   }
 `;
 
 /** Update the status of a specific iteration (data-set test) within a test run. */
 export const UPDATE_ITERATION_STATUS = `
-  mutation UpdateIterationStatus($runId: String!, $iterationIndex: Int!, $status: String!) {
-    updateIterationStatus(runId: $runId, iterationIndex: $iterationIndex, status: $status)
+  mutation UpdateIterationStatus($testRunId: String!, $iterationRank: String!, $status: String!) {
+    updateIterationStatus(testRunId: $testRunId, iterationRank: $iterationRank, status: $status)
   }
 `;
 
 /** Start or stop the execution timer for a test run. */
 export const SET_RUN_TIMER = `
-  mutation SetTestRunTimer($id: String!, $action: String!) {
-    setTestRunTimer(id: $id, action: $action)
+  mutation SetTestRunTimer($testRunId: String!, $running: Boolean, $reset: Boolean) {
+    setTestRunTimer(testRunId: $testRunId, running: $running, reset: $reset)
   }
 `;

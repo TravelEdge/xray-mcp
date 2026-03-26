@@ -5,7 +5,7 @@ export const EXEC_FIXTURE = {
   jira: { key: "PROJ-456", summary: "Sprint 1 Regression Run" },
   testRuns: {
     total: 2,
-    nodes: [
+    results: [
       { id: "run-001", status: { name: "PASS" } },
       { id: "run-002", status: { name: "TODO" } },
     ],
@@ -64,8 +64,5 @@ export const ADD_ENVS_FIXTURE = {
 };
 
 export const REMOVE_ENVS_FIXTURE = {
-  removeTestEnvironmentsFromTestExecution: {
-    issueId: "PROJ-456",
-    testEnvironments: ["Firefox"],
-  },
+  removeTestEnvironmentsFromTestExecution: "OK",
 };

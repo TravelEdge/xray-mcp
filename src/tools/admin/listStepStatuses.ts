@@ -1,8 +1,8 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
-import { FORMAT_PARAM } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM } from "../shared/formatHelpers.js";
 import { GET_STEP_STATUSES } from "./queries.js";
 
 const inputSchema = z.object({

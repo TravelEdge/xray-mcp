@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { DELETE_PLAN } from "./queries.js";
 
 interface DeletePlanResponse {
@@ -17,8 +17,7 @@ const inputSchema = z.object({
 
 registerTool({
   name: "xray_delete_test_plan",
-  description:
-    "Delete an Xray test plan by issue ID. This action is irreversible.",
+  description: "Delete an Xray test plan by issue ID. This action is irreversible.",
   accessLevel: "write",
   inputSchema,
   handler: async (args, _ctx) => {

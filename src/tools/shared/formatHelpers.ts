@@ -28,6 +28,9 @@ export function paginationHeader(
   count: number,
   total: number,
 ): string {
+  if (count === 0 || total === 0) {
+    return `${entityLabel} (0 of ${total})`;
+  }
   const end = start + count;
   const nextHint = end < total ? ` | next: start=${end}` : "";
   return `${entityLabel} (${start + 1}-${end} of ${total})${nextHint}`;
@@ -74,7 +77,7 @@ export interface MultipartPart {
  *  Returns: { body: string (multipart body), contentType: "multipart/form-data; boundary=xray-boundary" }
  */
 export function buildMultipartBody(parts: MultipartPart[]): { body: string; contentType: string } {
-  const boundary = "xray-boundary";
+  const boundary = `xray-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   const lines: string[] = [];
   for (const part of parts) {
     lines.push(`--${boundary}\r\n`);
@@ -82,7 +85,7 @@ export function buildMultipartBody(parts: MultipartPart[]): { body: string; cont
     lines.push(`Content-Type: ${part.contentType}\r\n\r\n`);
     lines.push(`${part.content}\r\n`);
   }
-  lines.push(`--${boundary}--`);
+  lines.push(`--${boundary}--\r\n`);
   return {
     body: lines.join(""),
     contentType: `multipart/form-data; boundary=${boundary}`,

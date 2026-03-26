@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { UPDATE_RUN_STATUS } from "./queries.js";
 
 registerTool({
@@ -20,10 +20,7 @@ registerTool({
     const id = args.id as string;
     const status = args.status as string;
 
-    await client.executeGraphQL<{ updateTestRunStatus: string }>(
-      UPDATE_RUN_STATUS,
-      { id, status },
-    );
+    await client.executeGraphQL<{ updateTestRunStatus: string }>(UPDATE_RUN_STATUS, { id, status });
 
     return {
       content: [

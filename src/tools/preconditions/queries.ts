@@ -79,20 +79,24 @@ export const LIST_PRECONDITIONS_FULL = `
 
 export const CREATE_PRECONDITION = `
   mutation CreatePrecondition(
-    $projectKey: String!
-    $summary: String!
-    $preconditionType: UpdatePreconditionType
+    $jira: JSON!
+    $preconditionType: UpdatePreconditionTypeInput
     $definition: String
-    $testIssueIds: [String]
+    $testIssueIds: [String!]
+    $folderPath: String
   ) {
     createPrecondition(
-      jira: { fields: { project: { key: $projectKey }, summary: $summary } }
+      jira: $jira
       preconditionType: $preconditionType
       definition: $definition
       testIssueIds: $testIssueIds
+      folderPath: $folderPath
     ) {
-      issueId
-      jira(fields: ["key"])
+      precondition {
+        issueId
+        jira(fields: ["key"])
+      }
+      warnings
     }
   }
 `;
@@ -100,13 +104,11 @@ export const CREATE_PRECONDITION = `
 export const UPDATE_PRECONDITION = `
   mutation UpdatePrecondition(
     $issueId: String!
-    $preconditionType: UpdatePreconditionType
-    $definition: String
+    $data: UpdatePreconditionInput!
   ) {
     updatePrecondition(
       issueId: $issueId
-      preconditionType: $preconditionType
-      definition: $definition
+      data: $data
     ) {
       issueId
       jira(fields: ["key"])

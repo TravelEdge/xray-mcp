@@ -6,12 +6,12 @@ import { TOOL_REGISTRY } from "../registry.js";
 import "./index.js";
 
 import {
-  mockGetFolderResponse,
-  mockCreateFolderResponse,
-  mockRenameFolderResponse,
-  mockMoveFolderResponse,
-  mockAddTestsToFolderResponse,
   mockAddIssuesToFolderResponse,
+  mockAddTestsToFolderResponse,
+  mockCreateFolderResponse,
+  mockGetFolderResponse,
+  mockMoveFolderResponse,
+  mockRenameFolderResponse,
 } from "./fixtures.js";
 
 // ---------------------------------------------------------------------------
@@ -91,7 +91,7 @@ describe("folder tools", () => {
     vi.mocked(client.executeGraphQL).mockResolvedValueOnce(mockCreateFolderResponse);
     const handler = getHandler("xray_create_folder");
     const result = await handler(
-      { _client: client, projectId: "10000", path: "/Regression", name: "Login" },
+      { _client: client, projectId: "10000", path: "/Regression/Login" },
       toonCtx,
     );
     expect(result.content[0].text).toContain("OK:CREATED");
@@ -102,7 +102,7 @@ describe("folder tools", () => {
     vi.mocked(client.executeGraphQL).mockResolvedValueOnce({ createFolder: { folder: null } });
     const handler = getHandler("xray_create_folder");
     const result = await handler(
-      { _client: client, projectId: "10000", path: "/Regression", name: "Login" },
+      { _client: client, projectId: "10000", path: "/Regression/Login" },
       toonCtx,
     );
     expect(result.content[0].text).toContain("ERR:CREATE_FAILED");
@@ -209,7 +209,6 @@ describe("folder tools", () => {
       {
         _client: client,
         projectId: "10000",
-        path: "/Regression/Login",
         testIssueIds: ["10001"],
       },
       toonCtx,
@@ -245,7 +244,6 @@ describe("folder tools", () => {
       {
         _client: client,
         projectId: "10000",
-        path: "/Regression/Login",
         issueIds: ["20001"],
       },
       toonCtx,

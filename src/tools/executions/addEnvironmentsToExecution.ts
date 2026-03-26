@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { ADD_ENVIRONMENTS_TO_EXECUTION } from "./queries.js";
 
 interface AddEnvsResponse {
@@ -13,7 +13,7 @@ interface AddEnvsResponse {
 
 const inputSchema = z.object({
   issueId: z.string().describe("Test execution issue key, e.g. PROJ-456"),
-  environments: z
+  testEnvironments: z
     .array(z.string())
     .min(1)
     .describe("Environment names to add, e.g. ['Chrome', 'Firefox']"),
@@ -26,12 +26,12 @@ registerTool({
   accessLevel: "write",
   inputSchema,
   handler: async (args, _ctx) => {
-    const { issueId, environments, format } = args as z.infer<typeof inputSchema>;
+    const { issueId, testEnvironments, format } = args as z.infer<typeof inputSchema>;
     const client = args._client as XrayClient;
 
     const data = await client.executeGraphQL<AddEnvsResponse>(ADD_ENVIRONMENTS_TO_EXECUTION, {
       issueId,
-      environments,
+      testEnvironments,
     });
 
     const result = data.addTestEnvironmentsToTestExecution;

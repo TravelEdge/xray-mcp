@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { ADD_EVIDENCE_TO_RUN } from "./queries.js";
 
 registerTool({
@@ -24,14 +24,13 @@ registerTool({
   }),
   handler: async (args, _ctx) => {
     const client = args._client as XrayClient;
-    // Pitfall 7: map mimeType (LLM-friendly name) to mediaType (Xray GraphQL field name)
     await client.executeGraphQL(ADD_EVIDENCE_TO_RUN, {
       id: args.id,
       evidence: [
         {
           data: args.content,
           filename: args.filename,
-          mediaType: args.mimeType,
+          mimeType: args.mimeType,
         },
       ],
     });

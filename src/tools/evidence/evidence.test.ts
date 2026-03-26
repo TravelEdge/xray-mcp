@@ -3,20 +3,20 @@
  * Uses mocked fetch — no real HTTP calls.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { HttpClient } from "../../clients/HttpClient.js";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
-import type { HttpClient } from "../../clients/HttpClient.js";
-import { TOOL_REGISTRY } from "../registry.js";
 import type { ToolDefinition } from "../../types/index.js";
+import { TOOL_REGISTRY } from "../registry.js";
 import {
-  ADD_EVIDENCE_TO_RUN_RESPONSE,
-  REMOVE_EVIDENCE_FROM_RUN_RESPONSE,
   ADD_DEFECTS_TO_RUN_RESPONSE,
-  REMOVE_DEFECTS_FROM_RUN_RESPONSE,
-  ADD_EVIDENCE_TO_STEP_RESPONSE,
-  REMOVE_EVIDENCE_FROM_STEP_RESPONSE,
   ADD_DEFECTS_TO_STEP_RESPONSE,
+  ADD_EVIDENCE_TO_RUN_RESPONSE,
+  ADD_EVIDENCE_TO_STEP_RESPONSE,
+  REMOVE_DEFECTS_FROM_RUN_RESPONSE,
   REMOVE_DEFECTS_FROM_STEP_RESPONSE,
+  REMOVE_EVIDENCE_FROM_RUN_RESPONSE,
+  REMOVE_EVIDENCE_FROM_STEP_RESPONSE,
 } from "./fixtures.js";
 
 // Trigger registerTool() calls
@@ -73,7 +73,7 @@ describe("evidence tools", () => {
       expect(tool.accessLevel).toBe("write");
     });
 
-    it("calls executeGraphQL with mediaType (not mimeType) in evidence variables", async () => {
+    it("calls executeGraphQL with mimeType in evidence variables", async () => {
       mockRequest.mockResolvedValueOnce(ADD_EVIDENCE_TO_RUN_RESPONSE);
       const tool = findTool("xray_add_evidence_to_run");
 
@@ -93,9 +93,7 @@ describe("evidence tools", () => {
       const callArgs = mockRequest.mock.calls[0];
       const body = callArgs[1].body as { variables: Record<string, unknown> };
       const evidence = (body.variables.evidence as Array<Record<string, unknown>>)[0];
-      // Critical: must use mediaType, not mimeType (Pitfall 7)
-      expect(evidence).toHaveProperty("mediaType", "image/png");
-      expect(evidence).not.toHaveProperty("mimeType");
+      expect(evidence).toHaveProperty("mimeType", "image/png");
       expect(evidence).toHaveProperty("data", "base64content==");
       expect(evidence).toHaveProperty("filename", "screenshot.png");
     });
@@ -123,7 +121,10 @@ describe("evidence tools", () => {
     it("content parameter has max(10_000_000) size guard", () => {
       const tool = findTool("xray_add_evidence_to_run");
       const schema = tool.inputSchema;
-      const shape = schema.shape as Record<string, { _def?: { checks?: Array<{ kind: string; value: number }> } }>;
+      const shape = schema.shape as Record<
+        string,
+        { _def?: { checks?: Array<{ kind: string; value: number }> } }
+      >;
       const contentField = shape.content;
       // Verify max constraint exists
       const checks = contentField._def?.checks ?? [];
@@ -190,7 +191,7 @@ describe("evidence tools", () => {
       expect(tool.accessLevel).toBe("write");
     });
 
-    it("calls executeGraphQL with id and issueIds", async () => {
+    it("calls executeGraphQL with id and issues", async () => {
       mockRequest.mockResolvedValueOnce(ADD_DEFECTS_TO_RUN_RESPONSE);
       const tool = findTool("xray_add_defects_to_run");
 
@@ -198,7 +199,7 @@ describe("evidence tools", () => {
         {
           _client: client,
           id: "run-001",
-          issueIds: ["PROJ-123", "PROJ-456"],
+          issues: ["PROJ-123", "PROJ-456"],
           format: "toon",
         },
         makeCtx(),
@@ -208,7 +209,7 @@ describe("evidence tools", () => {
       const callArgs = mockRequest.mock.calls[0];
       const body = callArgs[1].body as { variables: Record<string, unknown> };
       expect(body.variables.id).toBe("run-001");
-      expect(body.variables.issueIds).toEqual(["PROJ-123", "PROJ-456"]);
+      expect(body.variables.issues).toEqual(["PROJ-123", "PROJ-456"]);
     });
 
     it("returns writeConfirmation with defect issue keys", async () => {
@@ -219,7 +220,7 @@ describe("evidence tools", () => {
         {
           _client: client,
           id: "run-001",
-          issueIds: ["PROJ-123"],
+          issues: ["PROJ-123"],
           format: "toon",
         },
         makeCtx(),
@@ -239,7 +240,7 @@ describe("evidence tools", () => {
       expect(tool.accessLevel).toBe("write");
     });
 
-    it("calls executeGraphQL with id and issueIds", async () => {
+    it("calls executeGraphQL with id and issues", async () => {
       mockRequest.mockResolvedValueOnce(REMOVE_DEFECTS_FROM_RUN_RESPONSE);
       const tool = findTool("xray_remove_defects_from_run");
 
@@ -247,7 +248,7 @@ describe("evidence tools", () => {
         {
           _client: client,
           id: "run-001",
-          issueIds: ["PROJ-123"],
+          issues: ["PROJ-123"],
           format: "toon",
         },
         makeCtx(),
@@ -256,7 +257,7 @@ describe("evidence tools", () => {
       expect(mockRequest).toHaveBeenCalledOnce();
       const callArgs = mockRequest.mock.calls[0];
       const body = callArgs[1].body as { variables: Record<string, unknown> };
-      expect(body.variables.issueIds).toEqual(["PROJ-123"]);
+      expect(body.variables.issues).toEqual(["PROJ-123"]);
     });
 
     it("returns writeConfirmation with run ID", async () => {
@@ -267,7 +268,7 @@ describe("evidence tools", () => {
         {
           _client: client,
           id: "run-001",
-          issueIds: ["PROJ-123"],
+          issues: ["PROJ-123"],
           format: "toon",
         },
         makeCtx(),
@@ -286,14 +287,14 @@ describe("evidence tools", () => {
       expect(tool.accessLevel).toBe("write");
     });
 
-    it("calls executeGraphQL with mediaType (not mimeType) in evidence variables", async () => {
+    it("calls executeGraphQL with mimeType in evidence variables", async () => {
       mockRequest.mockResolvedValueOnce(ADD_EVIDENCE_TO_STEP_RESPONSE);
       const tool = findTool("xray_add_evidence_to_step");
 
       await tool.handler(
         {
           _client: client,
-          runId: "run-001",
+          testRunId: "run-001",
           stepId: "step-42",
           content: "base64content==",
           filename: "log.txt",
@@ -307,9 +308,7 @@ describe("evidence tools", () => {
       const callArgs = mockRequest.mock.calls[0];
       const body = callArgs[1].body as { variables: Record<string, unknown> };
       const evidence = (body.variables.evidence as Array<Record<string, unknown>>)[0];
-      // Critical: must use mediaType, not mimeType (Pitfall 7)
-      expect(evidence).toHaveProperty("mediaType", "text/plain");
-      expect(evidence).not.toHaveProperty("mimeType");
+      expect(evidence).toHaveProperty("mimeType", "text/plain");
       expect(evidence).toHaveProperty("data", "base64content==");
       expect(evidence).toHaveProperty("filename", "log.txt");
     });
@@ -321,7 +320,7 @@ describe("evidence tools", () => {
       const result = await tool.handler(
         {
           _client: client,
-          runId: "run-001",
+          testRunId: "run-001",
           stepId: "step-42",
           content: "base64content==",
           filename: "log.txt",
@@ -338,7 +337,10 @@ describe("evidence tools", () => {
     it("content parameter has max(10_000_000) size guard", () => {
       const tool = findTool("xray_add_evidence_to_step");
       const schema = tool.inputSchema;
-      const shape = schema.shape as Record<string, { _def?: { checks?: Array<{ kind: string; value: number }> } }>;
+      const shape = schema.shape as Record<
+        string,
+        { _def?: { checks?: Array<{ kind: string; value: number }> } }
+      >;
       const contentField = shape.content;
       const checks = contentField._def?.checks ?? [];
       const maxCheck = checks.find((c) => c.kind === "max");
@@ -356,14 +358,14 @@ describe("evidence tools", () => {
       expect(tool.accessLevel).toBe("write");
     });
 
-    it("calls executeGraphQL with runId, stepId, and evidenceIds", async () => {
+    it("calls executeGraphQL with testRunId, stepId, and evidenceIds", async () => {
       mockRequest.mockResolvedValueOnce(REMOVE_EVIDENCE_FROM_STEP_RESPONSE);
       const tool = findTool("xray_remove_evidence_from_step");
 
       await tool.handler(
         {
           _client: client,
-          runId: "run-001",
+          testRunId: "run-001",
           stepId: "step-42",
           evidenceIds: ["ev-10"],
           format: "toon",
@@ -374,7 +376,7 @@ describe("evidence tools", () => {
       expect(mockRequest).toHaveBeenCalledOnce();
       const callArgs = mockRequest.mock.calls[0];
       const body = callArgs[1].body as { variables: Record<string, unknown> };
-      expect(body.variables.runId).toBe("run-001");
+      expect(body.variables.testRunId).toBe("run-001");
       expect(body.variables.stepId).toBe("step-42");
       expect(body.variables.evidenceIds).toEqual(["ev-10"]);
     });
@@ -386,7 +388,7 @@ describe("evidence tools", () => {
       const result = await tool.handler(
         {
           _client: client,
-          runId: "run-001",
+          testRunId: "run-001",
           stepId: "step-42",
           evidenceIds: ["ev-10"],
           format: "toon",
@@ -407,16 +409,16 @@ describe("evidence tools", () => {
       expect(tool.accessLevel).toBe("write");
     });
 
-    it("calls executeGraphQL with runId, stepId, and issueIds", async () => {
+    it("calls executeGraphQL with testRunId, stepId, and issues", async () => {
       mockRequest.mockResolvedValueOnce(ADD_DEFECTS_TO_STEP_RESPONSE);
       const tool = findTool("xray_add_defects_to_step");
 
       await tool.handler(
         {
           _client: client,
-          runId: "run-001",
+          testRunId: "run-001",
           stepId: "step-42",
-          issueIds: ["PROJ-789"],
+          issues: ["PROJ-789"],
           format: "toon",
         },
         makeCtx(),
@@ -425,9 +427,9 @@ describe("evidence tools", () => {
       expect(mockRequest).toHaveBeenCalledOnce();
       const callArgs = mockRequest.mock.calls[0];
       const body = callArgs[1].body as { variables: Record<string, unknown> };
-      expect(body.variables.runId).toBe("run-001");
+      expect(body.variables.testRunId).toBe("run-001");
       expect(body.variables.stepId).toBe("step-42");
-      expect(body.variables.issueIds).toEqual(["PROJ-789"]);
+      expect(body.variables.issues).toEqual(["PROJ-789"]);
     });
 
     it("returns writeConfirmation with defect issue key", async () => {
@@ -437,9 +439,9 @@ describe("evidence tools", () => {
       const result = await tool.handler(
         {
           _client: client,
-          runId: "run-001",
+          testRunId: "run-001",
           stepId: "step-42",
-          issueIds: ["PROJ-789"],
+          issues: ["PROJ-789"],
           format: "toon",
         },
         makeCtx(),
@@ -459,16 +461,16 @@ describe("evidence tools", () => {
       expect(tool.accessLevel).toBe("write");
     });
 
-    it("calls executeGraphQL with runId, stepId, and issueIds", async () => {
+    it("calls executeGraphQL with testRunId, stepId, and issues", async () => {
       mockRequest.mockResolvedValueOnce(REMOVE_DEFECTS_FROM_STEP_RESPONSE);
       const tool = findTool("xray_remove_defects_from_step");
 
       await tool.handler(
         {
           _client: client,
-          runId: "run-001",
+          testRunId: "run-001",
           stepId: "step-42",
-          issueIds: ["PROJ-789"],
+          issues: ["PROJ-789"],
           format: "toon",
         },
         makeCtx(),
@@ -477,7 +479,7 @@ describe("evidence tools", () => {
       expect(mockRequest).toHaveBeenCalledOnce();
       const callArgs = mockRequest.mock.calls[0];
       const body = callArgs[1].body as { variables: Record<string, unknown> };
-      expect(body.variables.issueIds).toEqual(["PROJ-789"]);
+      expect(body.variables.issues).toEqual(["PROJ-789"]);
     });
 
     it("returns writeConfirmation with run/step IDs", async () => {
@@ -487,9 +489,9 @@ describe("evidence tools", () => {
       const result = await tool.handler(
         {
           _client: client,
-          runId: "run-001",
+          testRunId: "run-001",
           stepId: "step-42",
-          issueIds: ["PROJ-789"],
+          issues: ["PROJ-789"],
           format: "toon",
         },
         makeCtx(),

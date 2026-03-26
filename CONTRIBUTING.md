@@ -182,6 +182,49 @@ Coverage is not yet enforced at a specific threshold, but the goal is >80% line 
 
 ---
 
+## Schema Verification
+
+Xray Cloud's GraphQL schema evolves over time. To prevent runtime failures from field renames, removed arguments, or type changes, this project includes an introspection + audit pipeline.
+
+### Running the audit
+
+```bash
+# Set Xray credentials
+export XRAY_CLIENT_ID=your-id
+export XRAY_CLIENT_SECRET=your-secret
+
+# Introspect live schema and audit all queries
+pnpm introspect:audit
+```
+
+This:
+1. Authenticates with Xray Cloud
+2. Introspects the full GraphQL schema
+3. Saves `schema/xray-schema.json` and `schema/xray-schema-summary.md`
+4. Audits every query/mutation in `src/tools/*/queries.ts` against the live schema
+5. Generates `schema/audit-report.md` with errors and warnings
+
+### When to run
+
+- **Before submitting a PR** that modifies any `queries.ts` file
+- **After Xray Cloud releases API changes** — run the audit to catch breaking changes early
+- **When adding a new tool** — verify your queries match the live schema
+
+### Fixing audit errors
+
+Common error patterns:
+
+| Error | Fix |
+|-------|-----|
+| `unknown root field: someField` | Field was renamed or removed — check `schema/xray-schema-summary.md` for the correct name |
+| `argument missing: argName` | Required argument was added — update the query variable declaration |
+| `field deprecated` | Xray deprecated a field — migrate to the replacement noted in the schema |
+| `return type requires subfield selection` | Mutation returns an object, not a scalar — add `{ field1 field2 }` to the selection |
+
+The `schema/` directory is gitignored — it contains instance-specific data and should not be committed.
+
+---
+
 ## Adding a New Tool
 
 Tools are registered via the `registerTool()` function and auto-discovered through the barrel import chain.

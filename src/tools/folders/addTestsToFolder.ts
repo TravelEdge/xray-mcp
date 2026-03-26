@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { ADD_TESTS_TO_FOLDER } from "./queries.js";
 
 registerTool({
@@ -17,7 +17,10 @@ registerTool({
   handler: async (args, _ctx) => {
     const client = args._client as XrayClient;
     const data = await client.executeGraphQL<{
-      addTestsToFolder: { folder: { name: string; path: string; testsCount: number }; warnings?: string[] };
+      addTestsToFolder: {
+        folder: { name: string; path: string; testsCount: number };
+        warnings?: string[];
+      };
     }>(ADD_TESTS_TO_FOLDER, {
       projectId: args.projectId,
       path: args.path,

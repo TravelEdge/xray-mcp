@@ -1,18 +1,21 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
-import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
-import { GET_EXPANDED_TEST_FULL, GET_EXPANDED_TEST_TOON, GET_TEST_FULL, GET_TEST_TOON } from "./queries.js";
+import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
+import {
+  GET_EXPANDED_TEST_FULL,
+  GET_EXPANDED_TEST_TOON,
+  GET_TEST_FULL,
+  GET_TEST_TOON,
+} from "./queries.js";
 
 const formatter = new ToonFormatter();
 
 /** Check if any step in the response has callTestStep data. */
 function hasCallTestStepData(testData: Record<string, unknown>): boolean {
-  const steps = (testData.steps as { nodes?: unknown[] } | undefined)?.nodes ?? [];
-  return steps.some(
-    (s) => (s as Record<string, unknown>).callTestStep != null,
-  );
+  const steps = (testData.steps as unknown[] | undefined) ?? [];
+  return steps.some((s) => (s as Record<string, unknown>).callTestStep != null);
 }
 
 registerTool({

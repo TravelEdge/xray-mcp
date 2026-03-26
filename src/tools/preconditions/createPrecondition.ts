@@ -6,8 +6,11 @@ import { CREATE_PRECONDITION } from "./queries.js";
 
 interface CreatePreconditionResponse {
   createPrecondition: {
-    issueId: string;
-    jira?: { key?: string };
+    precondition: {
+      issueId: string;
+      jira?: { key?: string };
+    };
+    warnings?: string[];
   };
 }
 
@@ -18,30 +21,48 @@ registerTool({
     "database seeded) that must be satisfied before tests can execute.",
   accessLevel: "write",
   inputSchema: z.object({
-    projectKey: z.string().describe("Jira project key, e.g. PROJ"),
-    summary: z.string().describe("Summary/title of the precondition"),
+    jira: z
+      .record(z.unknown())
+      .describe(
+        'Jira fields JSON, e.g. { "fields": { "project": { "key": "PROJ" }, "summary": "My precondition" } }',
+      ),
     preconditionType: z
-      .enum(["Manual", "Cucumber", "Generic"])
-      .default("Manual")
-      .describe("Precondition type (default: Manual)"),
+      .object({ name: z.string() })
+      .optional()
+      .describe('Precondition type, e.g. { "name": "Manual" }'),
     definition: z.string().optional().describe("Precondition definition/steps text"),
     testIssueIds: z
       .array(z.string())
       .optional()
       .describe("Issue IDs of tests to link to this precondition"),
+    folderPath: z.string().optional().describe("Folder path for the precondition"),
     format: FORMAT_PARAM,
   }),
   handler: async (args, _ctx) => {
     const client = args._client as XrayClient;
     const data = await client.executeGraphQL<CreatePreconditionResponse>(CREATE_PRECONDITION, {
-      projectKey: args.projectKey,
-      summary: args.summary,
+      jira: args.jira,
       preconditionType: args.preconditionType,
       definition: args.definition,
       testIssueIds: args.testIssueIds,
+      folderPath: args.folderPath,
     });
-    const key = data.createPrecondition.jira?.key ?? data.createPrecondition.issueId;
-    const details = `t:${args.preconditionType} | ${args.summary}`;
-    return { content: [{ type: "text" as const, text: writeConfirmation("CREATED", key, details) }] };
+    const precondition = data.createPrecondition?.precondition;
+    if (!precondition) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "ERR:CREATE_FAILED Precondition creation returned no data",
+          },
+        ],
+      };
+    }
+    const key = precondition.jira?.key ?? precondition.issueId;
+    const typeName = (args.preconditionType as { name: string } | undefined)?.name ?? "Manual";
+    const details = `t:${typeName} | precondition`;
+    return {
+      content: [{ type: "text" as const, text: writeConfirmation("CREATED", key, details) }],
+    };
   },
 });

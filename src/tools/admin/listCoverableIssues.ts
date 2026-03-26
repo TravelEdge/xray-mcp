@@ -1,10 +1,10 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
+import { registerTool } from "../registry.js";
 import { FORMAT_PARAM, paginationHeader, selectQuery } from "../shared/formatHelpers.js";
 import { JQL_PARAM, PAGINATION_PARAMS } from "../shared/types.js";
-import { registerTool } from "../registry.js";
-import { LIST_COVERABLE_ISSUES_TOON, LIST_COVERABLE_ISSUES_FULL } from "./queries.js";
+import { LIST_COVERABLE_ISSUES_FULL, LIST_COVERABLE_ISSUES_TOON } from "./queries.js";
 
 const inputSchema = z.object({
   jql: JQL_PARAM,

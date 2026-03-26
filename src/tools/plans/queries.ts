@@ -33,7 +33,7 @@ export const GET_PLAN_TOON = /* GraphQL */ `
 // Resolvers: getTestPlan, jira, jira.fields(4),
 //   tests, tests.results, tests.results.jira, tests.results.jira.fields(3),
 //   testExecutions, testExecutions.results, testExecutions.results.jira,
-//   testExecutions.results.jira.fields(3), folder, status
+//   testExecutions.results.jira.fields(3), folders, status
 // ---------------------------------------------------------------------------
 export const GET_PLAN_FULL = /* GraphQL */ `
   query GetTestPlanFull($issueId: String!) {
@@ -54,7 +54,7 @@ export const GET_PLAN_FULL = /* GraphQL */ `
           jira(fields: ["key", "summary", "status"])
         }
       }
-      folder {
+      folders {
         path
       }
     }
@@ -91,7 +91,7 @@ export const LIST_PLANS_TOON = /* GraphQL */ `
 //   results.jira, results.jira.fields(4),
 //   results.tests, results.tests.total,
 //   results.testExecutions, results.testExecutions.total,
-//   results.folder, results.folder.path
+//   results.folders, results.folders.path
 // ---------------------------------------------------------------------------
 export const LIST_PLANS_FULL = /* GraphQL */ `
   query ListPlansFull($jql: String, $limit: Int!, $start: Int) {
@@ -106,7 +106,7 @@ export const LIST_PLANS_FULL = /* GraphQL */ `
         testExecutions(limit: 1) {
           total
         }
-        folder {
+        folders {
           path
         }
       }
@@ -119,16 +119,17 @@ export const LIST_PLANS_FULL = /* GraphQL */ `
 // ---------------------------------------------------------------------------
 
 export const CREATE_PLAN = /* GraphQL */ `
-  mutation CreateTestPlan($projectKey: String!, $summary: String!, $testIssueIds: [String]) {
+  mutation CreateTestPlan($jira: JSON!, $savedFilter: String, $testIssueIds: [String]) {
     createTestPlan(
-      projectKey: $projectKey
-      summary: $summary
+      jira: $jira
+      savedFilter: $savedFilter
       testIssueIds: $testIssueIds
     ) {
       testPlan {
         issueId
         jira(fields: ["key"])
       }
+      warnings
     }
   }
 `;
@@ -160,8 +161,8 @@ export const REMOVE_TESTS_FROM_PLAN = /* GraphQL */ `
 `;
 
 export const ADD_EXECUTIONS_TO_PLAN = /* GraphQL */ `
-  mutation AddExecutionsToPlan($issueId: String!, $executionIssueIds: [String]!) {
-    addTestExecutionsToTestPlan(issueId: $issueId, testExecutionIssueIds: $executionIssueIds) {
+  mutation AddExecutionsToPlan($issueId: String!, $testExecIssueIds: [String]!) {
+    addTestExecutionsToTestPlan(issueId: $issueId, testExecIssueIds: $testExecIssueIds) {
       addedTestExecutions
       warning
     }
@@ -169,10 +170,10 @@ export const ADD_EXECUTIONS_TO_PLAN = /* GraphQL */ `
 `;
 
 export const REMOVE_EXECUTIONS_FROM_PLAN = /* GraphQL */ `
-  mutation RemoveExecutionsFromPlan($issueId: String!, $executionIssueIds: [String]!) {
+  mutation RemoveExecutionsFromPlan($issueId: String!, $testExecIssueIds: [String]!) {
     removeTestExecutionsFromTestPlan(
       issueId: $issueId
-      testExecutionIssueIds: $executionIssueIds
+      testExecIssueIds: $testExecIssueIds
     ) {
       removedTestExecutions
       warning

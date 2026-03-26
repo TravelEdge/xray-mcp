@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { ADD_EXECUTIONS_TO_PLAN } from "./queries.js";
 
 interface AddExecutionsResponse {
@@ -13,7 +13,7 @@ interface AddExecutionsResponse {
 
 const inputSchema = z.object({
   issueId: z.string().describe("Jira issue ID of the test plan"),
-  executionIssueIds: z
+  testExecIssueIds: z
     .array(z.string())
     .min(1)
     .describe("List of test execution issue IDs to add to the plan"),
@@ -26,12 +26,12 @@ registerTool({
   accessLevel: "write",
   inputSchema,
   handler: async (args, _ctx) => {
-    const { issueId, executionIssueIds, format } = args as z.infer<typeof inputSchema>;
+    const { issueId, testExecIssueIds, format } = args as z.infer<typeof inputSchema>;
     const client = args._client as XrayClient;
 
     const data = await client.executeGraphQL<AddExecutionsResponse>(ADD_EXECUTIONS_TO_PLAN, {
       issueId,
-      executionIssueIds,
+      testExecIssueIds,
     });
 
     const result = data.addTestExecutionsToTestPlan;

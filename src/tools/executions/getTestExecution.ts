@@ -1,9 +1,9 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
-import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
-import { GET_EXECUTION_TOON, GET_EXECUTION_FULL } from "./queries.js";
+import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
+import { GET_EXECUTION_FULL, GET_EXECUTION_TOON } from "./queries.js";
 
 const inputSchema = z.object({
   issueId: z.string().describe("Test execution issue key, e.g. PROJ-456"),

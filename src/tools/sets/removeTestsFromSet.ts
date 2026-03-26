@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
-import { registerTool } from "../registry.js";
-import { REMOVE_TESTS_FROM_SET } from "./queries.js";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
+import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
+import { REMOVE_TESTS_FROM_SET } from "./queries.js";
 
 interface RemoveTestsData {
   removeTestsFromTestSet: {
@@ -22,8 +22,7 @@ const schema = z.object({
 
 registerTool({
   name: "xray_remove_tests_from_set",
-  description:
-    "Remove tests from a test set. Tests are referenced by their Jira issue IDs.",
+  description: "Remove tests from a test set. Tests are referenced by their Jira issue IDs.",
   accessLevel: "write",
   inputSchema: schema,
   async handler(args, _ctx) {
@@ -39,7 +38,9 @@ registerTool({
 
     if (format === "json") {
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(data.removeTestsFromTestSet, null, 2) }],
+        content: [
+          { type: "text" as const, text: JSON.stringify(data.removeTestsFromTestSet, null, 2) },
+        ],
       };
     }
 

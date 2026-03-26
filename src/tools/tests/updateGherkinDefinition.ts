@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { UPDATE_GHERKIN_DEFINITION } from "./queries.js";
 
 registerTool({
@@ -17,7 +17,10 @@ registerTool({
     const { issueId, gherkin } = args as { issueId: string; gherkin: string };
     const client = args._client as XrayClient;
 
-    await client.executeGraphQL(UPDATE_GHERKIN_DEFINITION, { issueId, gherkin });
+    await client.executeGraphQL<{ updateGherkinTestDefinition: unknown }>(
+      UPDATE_GHERKIN_DEFINITION,
+      { issueId, gherkin },
+    );
 
     const text = writeConfirmation("UPDATED", issueId, "gherkin definition updated");
     return { content: [{ type: "text" as const, text }] };

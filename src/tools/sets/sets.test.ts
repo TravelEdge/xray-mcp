@@ -5,13 +5,13 @@ import { TOOL_REGISTRY } from "../registry.js";
 import "./index.js";
 
 import {
-  mockGetSetResponse,
-  mockGetSetNullResponse,
-  mockListSetsResponse,
-  mockCreateSetResponse,
-  mockCreateSetNullResponse,
-  mockDeleteSetResponse,
   mockAddTestsResponse,
+  mockCreateSetNullResponse,
+  mockCreateSetResponse,
+  mockDeleteSetResponse,
+  mockGetSetNullResponse,
+  mockGetSetResponse,
+  mockListSetsResponse,
   mockRemoveTestsResponse,
 } from "./fixtures.js";
 
@@ -107,8 +107,7 @@ describe("sets tools", () => {
 
     const handler = findHandler("xray_create_test_set");
     const result = await handler({
-      projectKey: "PROJ",
-      summary: "New test set",
+      jira: { fields: { project: { key: "PROJ" }, summary: "New test set" } },
       format: "toon",
     });
 
@@ -121,8 +120,7 @@ describe("sets tools", () => {
 
     const handler = findHandler("xray_create_test_set");
     const result = await handler({
-      projectKey: "PROJ",
-      summary: "Failed set",
+      jira: { fields: { project: { key: "PROJ" }, summary: "Failed set" } },
       format: "toon",
     });
 

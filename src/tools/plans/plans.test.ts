@@ -5,14 +5,14 @@ import { TOOL_REGISTRY } from "../registry.js";
 import "./index.js";
 
 import {
-  mockGetPlanResponse,
-  mockListPlansResponse,
+  mockAddExecutionsResponse,
+  mockAddTestsResponse,
   mockCreatePlanResponse,
   mockDeletePlanResponse,
-  mockAddTestsResponse,
-  mockRemoveTestsResponse,
-  mockAddExecutionsResponse,
+  mockGetPlanResponse,
+  mockListPlansResponse,
   mockRemoveExecutionsResponse,
+  mockRemoveTestsResponse,
 } from "./fixtures.js";
 
 // ---------------------------------------------------------------------------
@@ -143,8 +143,7 @@ describe("Plan Tools", () => {
       mockExecuteGraphQL.mockResolvedValue(mockCreatePlanResponse);
 
       const result = await invokeTool("xray_create_test_plan", {
-        projectKey: "PROJ",
-        summary: "Release 2.0 Test Plan",
+        jira: { fields: { project: { key: "PROJ" }, summary: "Release 2.0 Test Plan" } },
         format: "toon",
       });
 
@@ -157,8 +156,7 @@ describe("Plan Tools", () => {
       mockExecuteGraphQL.mockResolvedValue(mockCreatePlanResponse);
 
       const result = await invokeTool("xray_create_test_plan", {
-        projectKey: "PROJ",
-        summary: "Release 2.0 Test Plan",
+        jira: { fields: { project: { key: "PROJ" }, summary: "Release 2.0 Test Plan" } },
         format: "json",
       });
 
@@ -246,7 +244,7 @@ describe("Plan Tools", () => {
 
       const result = await invokeTool("xray_add_executions_to_plan", {
         issueId: "10042",
-        executionIssueIds: ["10021", "10022"],
+        testExecIssueIds: ["10021", "10022"],
         format: "toon",
       });
 
@@ -266,7 +264,7 @@ describe("Plan Tools", () => {
 
       const result = await invokeTool("xray_remove_executions_from_plan", {
         issueId: "10042",
-        executionIssueIds: ["10021"],
+        testExecIssueIds: ["10021"],
         format: "toon",
       });
 
@@ -282,7 +280,9 @@ describe("Plan Tools", () => {
   // -------------------------------------------------------------------------
   describe("Tool registration", () => {
     it("registers all 8 plan tools in TOOL_REGISTRY", () => {
-      const planTools = TOOL_REGISTRY.filter((t) => t.name.includes("plan") || t.name.includes("Plan"));
+      const planTools = TOOL_REGISTRY.filter(
+        (t) => t.name.includes("plan") || t.name.includes("Plan"),
+      );
       expect(planTools.length).toBeGreaterThanOrEqual(8);
     });
 

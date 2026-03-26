@@ -2,13 +2,9 @@ import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
-import {
-  FORMAT_PARAM,
-  paginationHeader,
-  selectQuery,
-} from "../shared/formatHelpers.js";
-import { JQL_PARAM } from "../shared/types.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, paginationHeader, selectQuery } from "../shared/formatHelpers.js";
+import { JQL_PARAM } from "../shared/types.js";
 import { LIST_TESTS_FULL, LIST_TESTS_TOON } from "./queries.js";
 
 const formatter = new ToonFormatter();
@@ -22,10 +18,7 @@ registerTool({
   accessLevel: "read",
   inputSchema: z.object({
     jql: JQL_PARAM,
-    folder: z
-      .string()
-      .optional()
-      .describe("Filter by folder path (e.g. /Regression/Login)"),
+    folder: z.string().optional().describe("Filter by folder path (e.g. /Regression/Login)"),
     limit: z
       .number()
       .int()
@@ -68,13 +61,13 @@ registerTool({
     try {
       data = await client.executeGraphQL<{
         getTests: { total: number; results: unknown[] };
-      }>(query, { jql, limit, start, folder });
+      }>(query, { jql, limit, start, folder: folder ? { path: folder } : undefined });
     } catch (err) {
       // FALLBACK: if expanded query fails, retry with TOON query
       expansionUnavailable = true;
       data = await client.executeGraphQL<{
         getTests: { total: number; results: unknown[] };
-      }>(LIST_TESTS_TOON, { jql, limit, start, folder });
+      }>(LIST_TESTS_TOON, { jql, limit, start, folder: folder ? { path: folder } : undefined });
     }
 
     const { total, results } = data.getTests;

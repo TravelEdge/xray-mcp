@@ -17,6 +17,7 @@ export const mockTestRun = {
       result: "Success",
       evidence: [],
       defects: [],
+      actualResult: null,
     },
   ],
   customFields: [],
@@ -47,7 +48,7 @@ export const mockListRunsResponse = {
 };
 
 export const mockListRunsByIdResponse = {
-  getTestRunsById: [mockTestRun, mockTestRun2],
+  getTestRunsById: { total: 2, results: [mockTestRun, mockTestRun2] },
 };
 
 export const mockUpdateStatusResponse = {
@@ -59,7 +60,9 @@ export const mockUpdateCommentResponse = {
 };
 
 export const mockUpdateRunResponse = {
-  updateTestRun: "run-42",
+  updateTestRun: {
+    warnings: [],
+  },
 };
 
 export const mockResetRunResponse = {
@@ -67,19 +70,25 @@ export const mockResetRunResponse = {
 };
 
 export const mockUpdateStepStatusResponse = {
-  updateStepStatus: "step-1",
+  updateTestRunStepStatus: "step-1",
 };
 
 export const mockUpdateStepCommentResponse = {
-  updateStepComment: "step-1",
+  updateTestRunStepComment: "step-1",
 };
 
 export const mockUpdateRunStepResponse = {
-  updateTestRunStep: "step-1",
+  updateTestRunStep: {
+    addedDefects: [],
+    removedDefects: [],
+    addedEvidence: [],
+    removedEvidence: [],
+    warnings: [],
+  },
 };
 
 export const mockUpdateExampleStatusResponse = {
-  updateExampleStatus: "run-42",
+  updateTestRunExampleStatus: "run-42",
 };
 
 export const mockUpdateIterationStatusResponse = {

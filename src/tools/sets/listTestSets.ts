@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { ToonFormatter } from "../../formatters/ToonFormatter.js";
-import { FORMAT_PARAM, selectQuery, paginationHeader } from "../shared/formatHelpers.js";
-import { PAGINATION_PARAMS, JQL_PARAM } from "../shared/types.js";
-import { registerTool } from "../registry.js";
-import { LIST_SETS_TOON, LIST_SETS_FULL } from "./queries.js";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
+import { ToonFormatter } from "../../formatters/ToonFormatter.js";
+import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, paginationHeader, selectQuery } from "../shared/formatHelpers.js";
+import { JQL_PARAM, PAGINATION_PARAMS } from "../shared/types.js";
+import { LIST_SETS_FULL, LIST_SETS_TOON } from "./queries.js";
 
 interface TestSetSummary {
   issueId: string;
@@ -41,7 +41,9 @@ registerTool({
     const { total, results } = data.getTestSets;
 
     if (format === "json") {
-      return { content: [{ type: "text" as const, text: JSON.stringify(data.getTestSets, null, 2) }] };
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data.getTestSets, null, 2) }],
+      };
     }
 
     const header = paginationHeader("Test Sets", start, results.length, total);

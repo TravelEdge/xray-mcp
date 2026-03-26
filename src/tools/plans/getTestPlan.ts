@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
+import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import { registerTool } from "../registry.js";
-import { GET_PLAN_TOON, GET_PLAN_FULL } from "./queries.js";
+import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
+import { GET_PLAN_FULL, GET_PLAN_TOON } from "./queries.js";
 
 const inputSchema = z.object({
   issueId: z.string().describe("Jira issue ID of the test plan (e.g. '12345')"),

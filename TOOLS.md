@@ -70,10 +70,9 @@
 
 **Parameters:**
 
-- `projectKey` — Jira project key (e.g. PROJ)
-- `summary` — Test summary / title
-- `testType` *(optional)* — Test type (default: Manual)
-- `folder` *(optional)* — Folder path to place the test in (e.g. /Regression)
+- `jira` — Jira issue fields as JSON (e.g. { "fields": { "project": { "key": "PROJ" }, "summary": "Test name" } })
+- `testType` *(optional)* — Test type (e.g. { "name": "Manual" })
+- `folderPath` *(optional)* — Folder path to place the test in (e.g. /Regression)
 - `steps` *(optional)* — Initial steps for Manual tests
 - `gherkin` *(optional)* — Full Gherkin scenario text (for Cucumber tests)
 - `preconditionIssueIds` *(optional)* — Precondition issue IDs to associate with this test
@@ -89,7 +88,7 @@
 **Parameters:**
 
 - `issueId` — The Jira issue ID of the test (e.g. PROJ-123)
-- `testType` — New test type to set
+- `testType` — New test type (e.g. { "name": "Manual" })
 
 ### `xray_update_gherkin_definition`
 
@@ -103,32 +102,26 @@
 **Parameters:**
 
 - `issueId` — The Jira issue ID of the test (e.g. PROJ-123)
-- `definition` — New definition text for the Generic test
+- `unstructured` — New definition text for the Generic test
 
 ### `xray_add_test_step`
 
 **Parameters:**
 
 - `issueId` — The Jira issue ID of the test (e.g. PROJ-123)
-- `action` — Step action text
-- `data` *(optional)* — Step test data (optional)
-- `result` *(optional)* — Expected step result (optional)
+- `step` — Step data to add
 
 ### `xray_update_test_step`
 
 **Parameters:**
 
-- `issueId` — The Jira issue ID of the test (e.g. PROJ-123)
 - `stepId` — The ID of the step to update
-- `action` *(optional)* — Updated step action text
-- `data` *(optional)* — Updated step test data
-- `result` *(optional)* — Updated expected step result
+- `step` — Step fields to update
 
 ### `xray_remove_test_step`
 
 **Parameters:**
 
-- `issueId` — The Jira issue ID of the test (e.g. PROJ-123)
 - `stepId` — The ID of the step to remove
 
 ### `xray_remove_all_test_steps`
@@ -168,11 +161,10 @@
 
 **Parameters:**
 
-- `projectKey` — Jira project key, e.g. PROJ
-- `summary` — Test execution summary/title
+- `jira` — Jira fields JSON object, e.g. { "fields": { "summary": "...", "project": { "key": "PROJ" } } }
 - `testIssueIds` *(optional)* — Issue keys of tests to add to this execution
-- `environments` *(optional)* — Test environment names, e.g. ['Chrome', 'Firefox']
-- `testPlanIssueId` *(optional)* — Issue key of the test plan to link this execution to
+- `tests` *(optional)* — Tests with version info to add to this execution
+- `testEnvironments` *(optional)* — Test environment names, e.g. ['Chrome', 'Firefox']
 
 ### `xray_delete_test_execution`
 
@@ -199,14 +191,14 @@
 **Parameters:**
 
 - `issueId` — Test execution issue key, e.g. PROJ-456
-- `environments` — Environment names to add, e.g. ['Chrome', 'Firefox']
+- `testEnvironments` — Environment names to add, e.g. ['Chrome', 'Firefox']
 
 ### `xray_remove_environments_from_execution`
 
 **Parameters:**
 
 - `issueId` — Test execution issue key, e.g. PROJ-456
-- `environments` — Environment names to remove, e.g. ['Chrome']
+- `testEnvironments` — Environment names to remove, e.g. ['Chrome']
 
 ## Test Plans
 
@@ -214,7 +206,7 @@
 |------|--------|-------------|
 | `xray_get_test_plan` | read | Get a single Xray test plan by issue ID, including its tests and test executions. Returns plan details in TOON (compact) or JSON format. |
 | `xray_list_test_plans` | read | List Xray test plans with optional JQL filter and pagination. Returns paginated plan list with test and execution counts. |
-| `xray_create_test_plan` | write | Create a new Xray test plan in a Jira project. Optionally add tests immediately on creation. |
+| `xray_create_test_plan` | write | Create a new Xray test plan via Jira JSON payload. Optionally add tests immediately on creation. |
 | `xray_delete_test_plan` | write | Delete an Xray test plan by issue ID. This action is irreversible. |
 | `xray_add_tests_to_plan` | write | Add one or more tests to an existing Xray test plan. |
 | `xray_remove_tests_from_plan` | write | Remove one or more tests from an existing Xray test plan. |
@@ -239,8 +231,8 @@
 
 **Parameters:**
 
-- `projectKey` — Jira project key where the test plan will be created (e.g. 'PROJ')
-- `summary` — Summary/title for the new test plan
+- `jira` — Jira field payload (JSON object) — must include at minimum the project key and summary, e.g. {"fields":{"project":{"key":"PROJ"},"summary":"My Plan"}}
+- `savedFilter` *(optional)* — Optional saved filter ID to associate with the test plan
 - `testIssueIds` *(optional)* — Optional list of test issue IDs to add to the plan immediately
 
 ### `xray_delete_test_plan`
@@ -268,14 +260,14 @@
 **Parameters:**
 
 - `issueId` — Jira issue ID of the test plan
-- `executionIssueIds` — List of test execution issue IDs to add to the plan
+- `testExecIssueIds` — List of test execution issue IDs to add to the plan
 
 ### `xray_remove_executions_from_plan`
 
 **Parameters:**
 
 - `issueId` — Jira issue ID of the test plan
-- `executionIssueIds` — List of test execution issue IDs to remove from the plan
+- `testExecIssueIds` — List of test execution issue IDs to remove from the plan
 
 ## Test Sets
 
@@ -306,8 +298,7 @@
 
 **Parameters:**
 
-- `projectKey` — Jira project key (e.g. 'PROJ')
-- `summary` — Summary/title for the test set
+- `jira` — Jira fields JSON object (must include project key and summary, e.g. { "fields": { "project": { "key": "PROJ" }, "summary": "My set" } })
 - `testIssueIds` *(optional)* — Optional array of test issue IDs to add to the set
 
 ### `xray_delete_test_set`
@@ -336,18 +327,18 @@
 |------|--------|-------------|
 | `xray_get_test_run` | read | Get a test run by test issue key and test execution issue key. Returns the run status, comment, and timing. |
 | `xray_get_test_run_by_id` | read | Get a test run by its internal Xray run ID. Use xray_get_test_run if you have test+execution keys instead. |
-| `xray_list_test_runs` | read | List all test runs for a given test issue, with optional environment filter and pagination. |
+| `xray_list_test_runs` | read | List all test runs for a given test issue, with pagination. |
 | `xray_list_test_runs_by_id` | read | Get multiple test runs by their internal Xray run IDs in a single request. |
 | `xray_update_test_run_status` | write | Update the status of a test run. |
 | `xray_update_test_run_comment` | write | Update the comment on a test run. |
-| `xray_update_test_run` | write | Perform a full update of a test run: status, comment, assignee, and custom fields in one call. |
+| `xray_update_test_run` | write | Perform a full update of a test run: comment, assignee, dates, executedBy, and custom fields in one call. |
 | `xray_reset_test_run` | write | WARNING: Resets test run to initial state, clearing all status, comments, and step results. This action cannot be undone. |
 | `xray_update_step_status` | write | Update the status of a specific step within a test run. |
 | `xray_update_step_comment` | write | Update the comment on a specific step within a test run. |
-| `xray_update_test_run_step` | write | Perform a full update of a test run step: status, comment, evidence, and defects in one call. |
+| `xray_update_test_run_step` | write | Perform a full update of a test run step via UpdateTestRunStepInput: status, comment, evidence, and defects in one call. |
 | `xray_update_example_status` | write | Update the status of a specific example (BDD/data-driven test row) within a test run. |
 | `xray_update_iteration_status` | write | Update the status of a specific iteration (data-set test row) within a test run. |
-| `xray_set_test_run_timer` | write | Start or stop the execution timer for a test run. Use 'start' when beginning execution and 'stop' when finished. |
+| `xray_set_test_run_timer` | write | Control the execution timer for a test run. Set running=true to start, running=false to stop, reset=true to reset. |
 
 ### `xray_get_test_run`
 
@@ -367,7 +358,6 @@
 **Parameters:**
 
 - `testIssueId` — The Jira issue key of the test (e.g. 'PROJ-123')
-- `testEnvironments` *(optional)* — Filter by test environment names (e.g. ['staging', 'prod'])
 - `limit` *(optional)* — Number of results per page (1-100, default 50)
 - `start` *(optional)* — Offset for pagination (0-based)
 
@@ -396,9 +386,11 @@
 **Parameters:**
 
 - `id` — The internal Xray test run ID
-- `status` *(optional)* — New status for the test run
 - `comment` *(optional)* — New comment text
-- `assignee` *(optional)* — Assignee user account ID or username
+- `assigneeId` *(optional)* — Assignee user account ID
+- `startedOn` *(optional)* — Start date/time in ISO 8601 format
+- `finishedOn` *(optional)* — Finish date/time in ISO 8601 format
+- `executedById` *(optional)* — Executed-by user account ID
 - `customFields` *(optional)* — Custom field values as key-value pairs
 
 ### `xray_reset_test_run`
@@ -411,51 +403,51 @@
 
 **Parameters:**
 
-- `runId` — The internal Xray test run ID
+- `testRunId` — The internal Xray test run ID
 - `stepId` — The internal Xray step ID within the run
 - `status` — New status for the step
+- `iterationRank` *(optional)* — Rank of the iteration to update (for parameterized tests)
 
 ### `xray_update_step_comment`
 
 **Parameters:**
 
-- `runId` — The internal Xray test run ID
+- `testRunId` — The internal Xray test run ID
 - `stepId` — The internal Xray step ID within the run
 - `comment` — New comment text for the step
+- `iterationRank` *(optional)* — Rank of the iteration to update (for parameterized tests)
 
 ### `xray_update_test_run_step`
 
 **Parameters:**
 
-- `runId` — The internal Xray test run ID
+- `testRunId` — The internal Xray test run ID
 - `stepId` — The internal Xray step ID within the run
-- `status` *(optional)* — New status for the step
-- `comment` *(optional)* — New comment text for the step
-- `evidence` *(optional)* — Evidence files to attach to the step
-- `defects` *(optional)* — Jira issue keys to link as defects (e.g. ['PROJ-789'])
+- `updateData` *(optional)* — Update data for the step (status, comment, evidence, defects)
+- `iterationRank` *(optional)* — Rank of the iteration to update (for parameterized tests)
 
 ### `xray_update_example_status`
 
 **Parameters:**
 
-- `runId` — The internal Xray test run ID
-- `exampleIndex` — Zero-based index of the example in the test run
+- `exampleId` — The internal Xray example ID
 - `status` — New status for the example
 
 ### `xray_update_iteration_status`
 
 **Parameters:**
 
-- `runId` — The internal Xray test run ID
-- `iterationIndex` — Zero-based index of the iteration in the test run
+- `testRunId` — The internal Xray test run ID
+- `iterationRank` — Rank of the iteration in the test run
 - `status` — New status for the iteration
 
 ### `xray_set_test_run_timer`
 
 **Parameters:**
 
-- `id` — The internal Xray test run ID
-- `action` — Timer action: 'start' to begin timing, 'stop' to end timing
+- `testRunId` — The internal Xray test run ID
+- `running` *(optional)* — Set to true to start the timer, false to stop it
+- `reset` *(optional)* — Set to true to reset the timer
 
 ## Preconditions
 
@@ -487,19 +479,18 @@
 
 **Parameters:**
 
-- `projectKey` — Jira project key, e.g. PROJ
-- `summary` — Summary/title of the precondition
-- `preconditionType` *(optional)* — Precondition type (default: Manual)
+- `jira` — Jira fields JSON, e.g. { "fields": { "project": { "key": "PROJ" }, "summary": "My precondition" } }
+- `preconditionType` *(optional)* — Precondition type, e.g. { "name": "Manual" }
 - `definition` *(optional)* — Precondition definition/steps text
 - `testIssueIds` *(optional)* — Issue IDs of tests to link to this precondition
+- `folderPath` *(optional)* — Folder path for the precondition
 
 ### `xray_update_precondition`
 
 **Parameters:**
 
 - `issueId` — Precondition issue key, e.g. PROJ-123
-- `preconditionType` *(optional)* — New precondition type
-- `definition` *(optional)* — New precondition definition/steps text
+- `data` — Fields to update on the precondition
 
 ### `xray_delete_precondition`
 
@@ -547,8 +538,7 @@
 **Parameters:**
 
 - `projectId` — Jira project ID, e.g. '10000'
-- `path` — Parent folder path, e.g. /Regression
-- `name` — Name for the new folder
+- `path` — Full folder path including the new folder name as the last segment, e.g. '/Regression/Login'
 
 ### `xray_delete_folder`
 
@@ -586,7 +576,6 @@
 **Parameters:**
 
 - `projectId` — Jira project ID, e.g. '10000'
-- `path` — Folder path, e.g. '/Regression/Login'
 - `testIssueIds` — Array of test issue IDs to remove from the folder
 
 ### `xray_add_issues_to_folder`
@@ -602,7 +591,6 @@
 **Parameters:**
 
 - `projectId` — Jira project ID, e.g. '10000'
-- `path` — Folder path, e.g. '/Regression/Login'
 - `issueIds` — Array of issue IDs (preconditions) to remove from the folder
 
 ## Evidence & Defects
@@ -639,20 +627,20 @@
 **Parameters:**
 
 - `id` — Test run internal ID
-- `issueIds` — Jira issue keys to link as defects, e.g. ['PROJ-123']
+- `issues` — Jira issue keys to link as defects, e.g. ['PROJ-123']
 
 ### `xray_remove_defects_from_run`
 
 **Parameters:**
 
 - `id` — Test run internal ID
-- `issueIds` — Jira issue keys to unlink as defects
+- `issues` — Jira issue keys to unlink as defects
 
 ### `xray_add_evidence_to_step`
 
 **Parameters:**
 
-- `runId` — Test run internal ID
+- `testRunId` — Test run internal ID
 - `stepId` — Test run step internal ID
 - `content` — Base64-encoded file content (screenshot, PDF, log). Max ~7.5MB decoded.
 - `filename` — Filename with extension, e.g. screenshot.png
@@ -662,7 +650,7 @@
 
 **Parameters:**
 
-- `runId` — Test run internal ID
+- `testRunId` — Test run internal ID
 - `stepId` — Test run step internal ID
 - `evidenceIds` — Evidence IDs to remove from the step
 
@@ -670,17 +658,17 @@
 
 **Parameters:**
 
-- `runId` — Test run internal ID
+- `testRunId` — Test run internal ID
 - `stepId` — Test run step internal ID
-- `issueIds` — Jira issue keys to link as defects, e.g. ['PROJ-123']
+- `issues` — Jira issue keys to link as defects, e.g. ['PROJ-123']
 
 ### `xray_remove_defects_from_step`
 
 **Parameters:**
 
-- `runId` — Test run internal ID
+- `testRunId` — Test run internal ID
 - `stepId` — Test run step internal ID
-- `issueIds` — Jira issue keys to unlink as defects
+- `issues` — Jira issue keys to unlink as defects
 
 ## Imports
 
@@ -772,8 +760,8 @@
 |------|--------|-------------|
 | `xray_get_coverable_issue` | read | Get test coverage status for a Jira issue (story, bug, etc.). Returns whether the issue is covered by tests and the coverage percentage. For Jira issue details, use the Atlassian MCP server instead. |
 | `xray_list_coverable_issues` | read | List Jira issues that can have test coverage (stories, bugs, etc.) with their current coverage status. For Jira issue fields, use the Atlassian MCP server instead. |
-| `xray_get_dataset` | read | Get a test dataset by ID, including its parameters (columns) and rows of test data. |
-| `xray_list_datasets` | read | List test datasets for a project, including parameter counts and row counts. |
+| `xray_get_dataset` | read | Get a test dataset by test issue ID, including its parameters (columns) and rows of test data. |
+| `xray_list_datasets` | read | List test datasets, optionally filtered by test, execution, or plan issue IDs. |
 | `xray_export_cucumber_features` | read | Export Cucumber feature files for the given test issue keys. Returns the feature file content inline. For multiple tests, feature files are separated by '--- FILE: {key}.feature ---' headers. |
 | `xray_get_project_settings` | read | Get Xray configuration for a Jira project, including test types, test statuses, and step statuses. |
 | `xray_list_test_statuses` | read | List available test statuses in Xray. Optionally scope to a specific project to get project-specific statuses. |
@@ -798,15 +786,18 @@
 
 **Parameters:**
 
-- `id` — Dataset ID to retrieve
+- `testIssueId` — Test issue ID to retrieve the dataset for
+- `testExecIssueId` *(optional)* — Test execution issue ID (optional context filter)
+- `testPlanIssueId` *(optional)* — Test plan issue ID (optional context filter)
+- `callTestIssueId` *(optional)* — Call test issue ID (optional context filter)
 
 ### `xray_list_datasets`
 
 **Parameters:**
 
-- `projectId` — Jira project ID or key to list datasets for
-- `limit` *(optional)* — Number of results per page (1-100, default 50)
-- `start` *(optional)* — Offset for pagination (0-based)
+- `testIssueIds` *(optional)* — Filter by test issue IDs
+- `testExecIssueIds` *(optional)* — Filter by test execution issue IDs
+- `testPlanIssueIds` *(optional)* — Filter by test plan issue IDs
 
 ### `xray_export_cucumber_features`
 
@@ -818,7 +809,7 @@
 
 **Parameters:**
 
-- `projectId` — Jira project ID or key to get settings for
+- `projectIdOrKey` — Jira project ID or key to get settings for
 
 ### `xray_list_test_statuses`
 

@@ -1,9 +1,9 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
-import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
-import { GET_COVERABLE_ISSUE_TOON, GET_COVERABLE_ISSUE_FULL } from "./queries.js";
+import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
+import { GET_COVERABLE_ISSUE_FULL, GET_COVERABLE_ISSUE_TOON } from "./queries.js";
 
 const inputSchema = z.object({
   issueId: z.string().describe("Jira issue ID or key (story, bug, etc.) to get coverage for"),
@@ -38,9 +38,7 @@ registerTool({
 
     if (format === "json") {
       return {
-        content: [
-          { type: "text" as const, text: JSON.stringify(data.getCoverableIssue, null, 2) },
-        ],
+        content: [{ type: "text" as const, text: JSON.stringify(data.getCoverableIssue, null, 2) }],
       };
     }
 

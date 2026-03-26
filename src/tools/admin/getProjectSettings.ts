@@ -1,12 +1,12 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
-import { FORMAT_PARAM } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM } from "../shared/formatHelpers.js";
 import { GET_PROJECT_SETTINGS } from "./queries.js";
 
 const inputSchema = z.object({
-  projectId: z.string().describe("Jira project ID or key to get settings for"),
+  projectIdOrKey: z.string().describe("Jira project ID or key to get settings for"),
   format: FORMAT_PARAM,
 });
 
@@ -17,12 +17,12 @@ registerTool({
   accessLevel: "read",
   inputSchema,
   handler: async (args, ctx) => {
-    const { projectId, format } = args as z.infer<typeof inputSchema>;
+    const { projectIdOrKey, format } = args as z.infer<typeof inputSchema>;
     const client = args._client as XrayClient;
 
     const data = await client.executeGraphQL<{ getProjectSettings: unknown }>(
       GET_PROJECT_SETTINGS,
-      { projectId },
+      { projectIdOrKey },
     );
 
     if (!data.getProjectSettings) {
@@ -30,7 +30,7 @@ registerTool({
         content: [
           {
             type: "text" as const,
-            text: `ERR:NOT_FOUND Project settings for ${projectId} not found\n-> Verify the project ID is correct`,
+            text: `ERR:NOT_FOUND Project settings for ${projectIdOrKey} not found\n-> Verify the project ID is correct`,
           },
         ],
       };

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { UPDATE_UNSTRUCTURED_DEFINITION } from "./queries.js";
 
 registerTool({
@@ -10,14 +10,17 @@ registerTool({
   accessLevel: "write",
   inputSchema: z.object({
     issueId: z.string().describe("The Jira issue ID of the test (e.g. PROJ-123)"),
-    definition: z.string().describe("New definition text for the Generic test"),
+    unstructured: z.string().describe("New definition text for the Generic test"),
     format: FORMAT_PARAM,
   }),
   handler: async (args, _ctx) => {
-    const { issueId, definition } = args as { issueId: string; definition: string };
+    const { issueId, unstructured } = args as { issueId: string; unstructured: string };
     const client = args._client as XrayClient;
 
-    await client.executeGraphQL(UPDATE_UNSTRUCTURED_DEFINITION, { issueId, definition });
+    await client.executeGraphQL<{ updateUnstructuredTestDefinition: unknown }>(
+      UPDATE_UNSTRUCTURED_DEFINITION,
+      { issueId, unstructured },
+    );
 
     const text = writeConfirmation("UPDATED", issueId, "unstructured definition updated");
     return { content: [{ type: "text" as const, text }] };

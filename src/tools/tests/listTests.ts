@@ -2,13 +2,9 @@ import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { XrayCloudClient } from "../../clients/XrayCloudClient.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
-import {
-  FORMAT_PARAM,
-  paginationHeader,
-  selectQuery,
-} from "../shared/formatHelpers.js";
-import { JQL_PARAM, PAGINATION_PARAMS } from "../shared/types.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, paginationHeader, selectQuery } from "../shared/formatHelpers.js";
+import { JQL_PARAM, PAGINATION_PARAMS } from "../shared/types.js";
 import { LIST_TESTS_FULL, LIST_TESTS_TOON } from "./queries.js";
 
 const formatter = new ToonFormatter();
@@ -21,10 +17,7 @@ registerTool({
   accessLevel: "read",
   inputSchema: z.object({
     jql: JQL_PARAM,
-    folder: z
-      .string()
-      .optional()
-      .describe("Filter by folder path (e.g. /Regression/Login)"),
+    folder: z.string().optional().describe("Filter by folder path (e.g. /Regression/Login)"),
     ...PAGINATION_PARAMS,
     format: FORMAT_PARAM,
   }),
@@ -49,7 +42,7 @@ registerTool({
     const query = selectQuery(format, LIST_TESTS_TOON, LIST_TESTS_FULL);
     const data = await client.executeGraphQL<{
       getTests: { total: number; results: unknown[] };
-    }>(query, { jql, limit, start, folder });
+    }>(query, { jql, limit, start, folder: folder ? { path: folder } : undefined });
 
     const { total, results } = data.getTests;
     const header = paginationHeader("Tests", start, results.length, total);

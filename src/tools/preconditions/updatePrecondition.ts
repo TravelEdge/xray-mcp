@@ -12,23 +12,30 @@ registerTool({
   accessLevel: "write",
   inputSchema: z.object({
     issueId: z.string().describe("Precondition issue key, e.g. PROJ-123"),
-    preconditionType: z
-      .enum(["Manual", "Cucumber", "Generic"])
-      .optional()
-      .describe("New precondition type"),
-    definition: z.string().optional().describe("New precondition definition/steps text"),
+    data: z
+      .object({
+        preconditionType: z
+          .object({ name: z.string() })
+          .optional()
+          .describe('New precondition type, e.g. { "name": "Cucumber" }'),
+        definition: z.string().optional().describe("New precondition definition/steps text"),
+      })
+      .describe("Fields to update on the precondition"),
     format: FORMAT_PARAM,
   }),
   handler: async (args, _ctx) => {
     const client = args._client as XrayClient;
     await client.executeGraphQL(UPDATE_PRECONDITION, {
       issueId: args.issueId,
-      preconditionType: args.preconditionType,
-      definition: args.definition,
+      data: args.data,
     });
+    const updateData = args.data as {
+      preconditionType?: { name: string };
+      definition?: string;
+    };
     const parts: string[] = [];
-    if (args.preconditionType) parts.push(`t:${args.preconditionType}`);
-    if (args.definition) parts.push(`def:updated`);
+    if (updateData.preconditionType) parts.push(`t:${updateData.preconditionType.name}`);
+    if (updateData.definition) parts.push(`def:updated`);
     const details = parts.length > 0 ? parts.join(" | ") : undefined;
     return {
       content: [

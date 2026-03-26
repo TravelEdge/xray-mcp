@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
+import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import { registerTool } from "../registry.js";
-import { GET_RUN_BY_ID_TOON, GET_RUN_BY_ID_FULL } from "./queries.js";
+import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
+import { GET_RUN_BY_ID_FULL, GET_RUN_BY_ID_TOON } from "./queries.js";
 
 registerTool({
   name: "xray_get_test_run_by_id",
@@ -19,10 +19,7 @@ registerTool({
     const format = (args.format as string) ?? "toon";
     const query = selectQuery(format, GET_RUN_BY_ID_TOON, GET_RUN_BY_ID_FULL);
 
-    const data = await client.executeGraphQL<{ getTestRunById: unknown }>(
-      query,
-      { id: args.id },
-    );
+    const data = await client.executeGraphQL<{ getTestRunById: unknown }>(query, { id: args.id });
 
     if (!data.getTestRunById) {
       return {
@@ -38,10 +35,7 @@ registerTool({
     const text =
       format === "json"
         ? JSON.stringify(data.getTestRunById, null, 2)
-        : new ToonFormatter(format as "toon" | "summary").format(
-            "test_run",
-            data.getTestRunById,
-          );
+        : new ToonFormatter(format as "toon" | "summary").format("test_run", data.getTestRunById);
 
     return { content: [{ type: "text" as const, text }] };
   },

@@ -1,21 +1,17 @@
 import { z } from "zod";
-import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import {
-  FORMAT_PARAM,
-  paginationHeader,
-  selectQuery,
-} from "../shared/formatHelpers.js";
-import { PAGINATION_PARAMS, JQL_PARAM } from "../shared/types.js";
+import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import { registerTool } from "../registry.js";
-import { LIST_PLANS_TOON, LIST_PLANS_FULL } from "./queries.js";
+import { FORMAT_PARAM, paginationHeader, selectQuery } from "../shared/formatHelpers.js";
+import { JQL_PARAM, PAGINATION_PARAMS } from "../shared/types.js";
+import { LIST_PLANS_FULL, LIST_PLANS_TOON } from "./queries.js";
 
 interface PlanResult {
   issueId: string;
   jira?: Record<string, unknown>;
   tests?: { total?: number };
   testExecutions?: { total?: number };
-  folder?: { path?: string };
+  folders?: { path?: string };
 }
 
 interface ListPlansResponse {

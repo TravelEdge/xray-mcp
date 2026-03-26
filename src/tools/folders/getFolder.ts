@@ -1,9 +1,9 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { ToonFormatter } from "../../formatters/ToonFormatter.js";
-import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
-import { GET_FOLDER_TOON, GET_FOLDER_FULL } from "./queries.js";
+import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
+import { GET_FOLDER_FULL, GET_FOLDER_TOON } from "./queries.js";
 
 registerTool({
   name: "xray_get_folder",

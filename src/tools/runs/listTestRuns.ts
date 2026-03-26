@@ -1,28 +1,17 @@
 import { z } from "zod";
-import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import {
-  FORMAT_PARAM,
-  paginationHeader,
-  selectQuery,
-} from "../shared/formatHelpers.js";
-import { PAGINATION_PARAMS } from "../shared/types.js";
+import { ToonFormatter } from "../../formatters/ToonFormatter.js";
 import { registerTool } from "../registry.js";
-import { LIST_RUNS_TOON, LIST_RUNS_FULL } from "./queries.js";
+import { FORMAT_PARAM, paginationHeader, selectQuery } from "../shared/formatHelpers.js";
+import { PAGINATION_PARAMS } from "../shared/types.js";
+import { LIST_RUNS_FULL, LIST_RUNS_TOON } from "./queries.js";
 
 registerTool({
   name: "xray_list_test_runs",
-  description:
-    "List all test runs for a given test issue, with optional environment filter and pagination.",
+  description: "List all test runs for a given test issue, with pagination.",
   accessLevel: "read",
   inputSchema: z.object({
-    testIssueId: z
-      .string()
-      .describe("The Jira issue key of the test (e.g. 'PROJ-123')"),
-    testEnvironments: z
-      .array(z.string())
-      .optional()
-      .describe("Filter by test environment names (e.g. ['staging', 'prod'])"),
+    testIssueId: z.string().describe("The Jira issue key of the test (e.g. 'PROJ-123')"),
     ...PAGINATION_PARAMS,
     format: FORMAT_PARAM,
   }),
@@ -36,28 +25,22 @@ registerTool({
     const data = await client.executeGraphQL<{
       getTestRuns: { total: number; results: unknown[] };
     }>(query, {
-      testIssueId: args.testIssueId,
+      testIssueIds: [args.testIssueId],
       limit,
       start,
-      testEnvironments: args.testEnvironments ?? null,
     });
 
     const { total, results } = data.getTestRuns;
 
     if (format === "json") {
       return {
-        content: [
-          { type: "text" as const, text: JSON.stringify(data.getTestRuns, null, 2) },
-        ],
+        content: [{ type: "text" as const, text: JSON.stringify(data.getTestRuns, null, 2) }],
       };
     }
 
     const formatter = new ToonFormatter(format as "toon" | "summary");
     const header = paginationHeader("Test Runs", start, results.length, total);
-    const lines = [
-      header,
-      ...results.map((r) => formatter.format("test_run", r)),
-    ];
+    const lines = [header, ...results.map((r) => formatter.format("test_run", r))];
 
     return { content: [{ type: "text" as const, text: lines.join("\n") }] };
   },

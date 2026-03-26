@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
-import { registerTool } from "../registry.js";
-import { DELETE_SET } from "./queries.js";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
+import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
+import { DELETE_SET } from "./queries.js";
 
 const schema = z.object({
   issueId: z.string().describe("Jira issue ID of the test set to delete (e.g. '10042')"),
@@ -11,8 +11,7 @@ const schema = z.object({
 
 registerTool({
   name: "xray_delete_test_set",
-  description:
-    "Delete a test set by its Jira issue ID. This removes the test set issue from Jira.",
+  description: "Delete a test set by its Jira issue ID. This removes the test set issue from Jira.",
   accessLevel: "write",
   inputSchema: schema,
   async handler(args, _ctx) {

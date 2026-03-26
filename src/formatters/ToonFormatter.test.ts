@@ -59,7 +59,7 @@ describe("ToonFormatter", () => {
       testType: { name: "Manual" },
       status: { name: "PASS" },
       folder: { path: "/Auth" },
-      steps: { nodes: [{}, {}, {}] },
+      steps: [{}, {}, {}],
       jira: { key: "PROJ-123", summary: "Login flow" },
     };
     const result = fmt.format("test", test);
@@ -102,7 +102,7 @@ describe("ToonFormatter", () => {
   it('format("test_execution") includes runs count', () => {
     const exec = {
       issueId: "EXEC-1",
-      testRuns: { nodes: [{}, {}] },
+      testRuns: { results: [{}, {}] },
       testEnvironments: ["dev"],
       jira: { key: "EXEC-1", summary: "Sprint 1 run" },
     };
@@ -115,8 +115,8 @@ describe("ToonFormatter", () => {
   it('format("test_plan") includes test count', () => {
     const plan = {
       issueId: "PLAN-1",
-      tests: { nodes: [{}, {}] },
-      testExecutions: { nodes: [{}] },
+      tests: { results: [{}, {}] },
+      testExecutions: { results: [{}] },
       jira: { key: "PLAN-1", summary: "Q1 Plan" },
     };
     const result = fmt.format("test_plan", plan);
@@ -128,7 +128,7 @@ describe("ToonFormatter", () => {
   it('format("test_set") includes test count', () => {
     const set = {
       issueId: "SET-1",
-      tests: { nodes: [{}, {}, {}] },
+      tests: { results: [{}, {}, {}] },
       jira: { key: "SET-1", summary: "Regression set" },
     };
     const result = fmt.format("test_set", set);
@@ -191,13 +191,16 @@ describe("ToonFormatter", () => {
   // --- dataset ---
   it('format("dataset") includes row and param counts', () => {
     const ds = {
-      name: "Login dataset",
-      rows: 10,
-      parameters: ["user", "pass"],
+      id: "ds-1",
+      rows: [
+        { order: 0, Values: ["admin", "secret"] },
+        { order: 1, Values: ["user1", "pass"] },
+      ],
+      parameters: [{ name: "user" }, { name: "pass" }],
     };
     const result = fmt.format("dataset", ds);
-    expect(result).toContain("Login dataset");
-    expect(result).toContain("10");
+    expect(result).toContain("ds-1");
+    expect(result).toContain("2 rows");
   });
 
   // --- import_result ---
@@ -392,7 +395,7 @@ describe("ToonFormatter", () => {
     it('format("test_execution") with empty testEnvironments omits env segment', () => {
       const exec = {
         issueId: "EXEC-2",
-        testRuns: { nodes: [{}] },
+        testRuns: { results: [{}] },
         testEnvironments: [],
         jira: { key: "EXEC-2", summary: "Run" },
       };
@@ -404,7 +407,7 @@ describe("ToonFormatter", () => {
     it('format("test_execution") with missing testEnvironments omits env segment', () => {
       const exec = {
         issueId: "EXEC-3",
-        testRuns: { nodes: [] },
+        testRuns: { results: [] },
       };
       const result = fmt.format("test_execution", exec);
       expect(result).not.toContain("env:");

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TOOL_REGISTRY } from "../registry.js";
 import { mockImportResult } from "./fixtures.js";
 
@@ -23,7 +23,10 @@ function findHandler(name: string) {
   return tool.handler;
 }
 
-const DEFAULT_CTX = { auth: { credentials: {} as never, source: "env" as const }, format: "toon" as const };
+const DEFAULT_CTX = {
+  auth: { credentials: {} as never, source: "env" as const },
+  format: "toon" as const,
+};
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -41,10 +44,7 @@ describe("import tools", () => {
       const handler = findHandler("xray_import_xray_json");
       const content = JSON.stringify({ tests: [{ key: "PROJ-1", status: "PASS" }] });
 
-      await handler(
-        { _client: client, content, projectKey: "PROJ", format: "toon" },
-        DEFAULT_CTX,
-      );
+      await handler({ _client: client, content, projectKey: "PROJ", format: "toon" }, DEFAULT_CTX);
 
       expect(client.executeRest).toHaveBeenCalledOnce();
       const [method, path, body] = client.executeRest.mock.calls[0] as [string, string, unknown];
@@ -71,12 +71,17 @@ describe("import tools", () => {
       );
 
       expect(client.executeRestRaw).toHaveBeenCalledOnce();
-      const [method, path, body, contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [method, path, body, contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(method).toBe("POST");
       expect(path).toBe("/import/execution");
       expect(contentType).toContain("multipart/form-data");
-      expect(contentType).toContain("xray-boundary");
-      expect(body).toContain("--xray-boundary");
+      expect(contentType).toContain("boundary=xray-");
+      expect(body).toContain("--xray-");
       expect(body).toContain("application/json");
       expect(body).toContain("My CI run");
     });
@@ -103,7 +108,8 @@ describe("import tools", () => {
     it("simple mode: calls executeRestRaw with XML content-type and query params", async () => {
       const client = makeMockClient();
       const handler = findHandler("xray_import_junit");
-      const xmlContent = '<testsuites><testsuite name="Suite1"><testcase name="test1"/></testsuite></testsuites>';
+      const xmlContent =
+        '<testsuites><testsuite name="Suite1"><testcase name="test1"/></testsuite></testsuites>';
 
       await handler(
         {
@@ -117,7 +123,12 @@ describe("import tools", () => {
       );
 
       expect(client.executeRestRaw).toHaveBeenCalledOnce();
-      const [method, path, body, contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [method, path, body, contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(method).toBe("POST");
       expect(path).toContain("/import/execution/junit");
       expect(path).toContain("projectKey=PROJ");
@@ -136,18 +147,27 @@ describe("import tools", () => {
           _client: client,
           content: xmlContent,
           format: "toon",
-          testExecInfo: { summary: "Integration run", description: "Automated CI", revision: "abc123" },
+          testExecInfo: {
+            summary: "Integration run",
+            description: "Automated CI",
+            revision: "abc123",
+          },
         },
         DEFAULT_CTX,
       );
 
       expect(client.executeRestRaw).toHaveBeenCalledOnce();
-      const [method, path, body, contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [method, path, body, contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(method).toBe("POST");
       expect(path).toBe("/import/execution/junit");
       expect(contentType).toContain("multipart/form-data");
-      expect(contentType).toContain("xray-boundary");
-      expect(body).toContain("--xray-boundary");
+      expect(contentType).toContain("boundary=xray-");
+      expect(body).toContain("--xray-");
       expect(body).toContain("application/xml");
       expect(body).toContain("application/json");
       expect(body).toContain("Integration run");
@@ -158,12 +178,14 @@ describe("import tools", () => {
       const client = makeMockClient();
       const handler = findHandler("xray_import_junit");
 
-      await handler(
-        { _client: client, content: "<testsuites/>", format: "toon" },
-        DEFAULT_CTX,
-      );
+      await handler({ _client: client, content: "<testsuites/>", format: "toon" }, DEFAULT_CTX);
 
-      const [, , body, contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [, , body, contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(contentType).toBe("application/xml");
       expect(body).toBe("<testsuites/>");
     });
@@ -187,7 +209,12 @@ describe("import tools", () => {
       );
 
       expect(client.executeRestRaw).toHaveBeenCalledOnce();
-      const [method, path, body, contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [method, path, body, contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(method).toBe("POST");
       expect(path).toContain("/import/execution/cucumber");
       expect(path).toContain("projectKey=PROJ");
@@ -198,10 +225,7 @@ describe("import tools", () => {
     it("does not call executeRest (no FormData/JSON body mode)", async () => {
       const client = makeMockClient();
       const handler = findHandler("xray_import_cucumber");
-      await handler(
-        { _client: client, content: "[]", format: "toon" },
-        DEFAULT_CTX,
-      );
+      await handler({ _client: client, content: "[]", format: "toon" }, DEFAULT_CTX);
       expect(client.executeRest).not.toHaveBeenCalled();
     });
   });
@@ -222,7 +246,12 @@ describe("import tools", () => {
         DEFAULT_CTX,
       );
 
-      const [, path, , contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [, path, , contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(path).toContain("/import/execution/testng");
       expect(contentType).toBe("application/xml");
     });
@@ -241,9 +270,14 @@ describe("import tools", () => {
         DEFAULT_CTX,
       );
 
-      const [, , body, contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [, , body, contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(contentType).toContain("multipart/form-data");
-      expect(body).toContain("--xray-boundary");
+      expect(body).toContain("--xray-");
       expect(body).toContain("TestNG run");
     });
   });
@@ -264,7 +298,12 @@ describe("import tools", () => {
         DEFAULT_CTX,
       );
 
-      const [, path, , contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [, path, , contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(path).toContain("/import/execution/nunit");
       expect(contentType).toBe("application/xml");
     });
@@ -283,9 +322,14 @@ describe("import tools", () => {
         DEFAULT_CTX,
       );
 
-      const [, , body, contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [, , body, contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(contentType).toContain("multipart/form-data");
-      expect(body).toContain("--xray-boundary");
+      expect(body).toContain("--xray-");
       expect(body).toContain("NUnit run");
     });
   });
@@ -306,7 +350,12 @@ describe("import tools", () => {
         DEFAULT_CTX,
       );
 
-      const [, path, , contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [, path, , contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(path).toContain("/import/execution/robot");
       expect(contentType).toBe("application/xml");
     });
@@ -325,9 +374,14 @@ describe("import tools", () => {
         DEFAULT_CTX,
       );
 
-      const [, , body, contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [, , body, contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(contentType).toContain("multipart/form-data");
-      expect(body).toContain("--xray-boundary");
+      expect(body).toContain("--xray-");
       expect(body).toContain("Robot run");
     });
   });
@@ -350,7 +404,12 @@ describe("import tools", () => {
       );
 
       expect(client.executeRestRaw).toHaveBeenCalledOnce();
-      const [method, path, body, contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [method, path, body, contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(method).toBe("POST");
       expect(path).toContain("/import/execution/behave");
       expect(contentType).toBe("application/json");
@@ -360,10 +419,7 @@ describe("import tools", () => {
     it("does not call executeRest (no FormData/JSON body mode)", async () => {
       const client = makeMockClient();
       const handler = findHandler("xray_import_behave");
-      await handler(
-        { _client: client, content: "[]", format: "toon" },
-        DEFAULT_CTX,
-      );
+      await handler({ _client: client, content: "[]", format: "toon" }, DEFAULT_CTX);
       expect(client.executeRest).not.toHaveBeenCalled();
     });
   });
@@ -378,7 +434,8 @@ describe("import tools", () => {
     it("calls executeRestRaw with text/plain content-type and required projectKey", async () => {
       const client = makeMockClient();
       const handler = findHandler("xray_import_feature_files");
-      const featureContent = "Feature: Login\n  Scenario: Valid login\n    Given I am on the login page";
+      const featureContent =
+        "Feature: Login\n  Scenario: Valid login\n    Given I am on the login page";
 
       await handler(
         { _client: client, content: featureContent, projectKey: "PROJ", format: "toon" },
@@ -386,7 +443,12 @@ describe("import tools", () => {
       );
 
       expect(client.executeRestRaw).toHaveBeenCalledOnce();
-      const [method, path, body, contentType] = client.executeRestRaw.mock.calls[0] as [string, string, string, string];
+      const [method, path, body, contentType] = client.executeRestRaw.mock.calls[0] as [
+        string,
+        string,
+        string,
+        string,
+      ];
       expect(method).toBe("POST");
       expect(path).toContain("/import/feature");
       expect(path).toContain("projectKey=PROJ");

@@ -50,8 +50,8 @@ export const GET_FOLDER_FULL = `
 // ─── Mutations ───────────────────────────────────────────────────────────────
 
 export const CREATE_FOLDER = `
-  mutation CreateFolder($projectId: String!, $path: String!, $name: String!) {
-    createFolder(projectId: $projectId, path: $path, name: $name) {
+  mutation CreateFolder($projectId: String!, $path: String!) {
+    createFolder(projectId: $projectId, path: $path) {
       folder {
         name
         path
@@ -108,8 +108,8 @@ export const ADD_TESTS_TO_FOLDER = `
 `;
 
 export const REMOVE_TESTS_FROM_FOLDER = `
-  mutation RemoveTestsFromFolder($projectId: String!, $path: String!, $testIssueIds: [String!]!) {
-    removeTestsFromFolder(projectId: $projectId, path: $path, testIssueIds: $testIssueIds)
+  mutation RemoveTestsFromFolder($projectId: String!, $testIssueIds: [String!]!) {
+    removeTestsFromFolder(projectId: $projectId, testIssueIds: $testIssueIds)
   }
 `;
 
@@ -127,7 +127,7 @@ export const ADD_ISSUES_TO_FOLDER = `
 `;
 
 export const REMOVE_ISSUES_FROM_FOLDER = `
-  mutation RemoveIssuesFromFolder($projectId: String!, $path: String!, $issueIds: [String!]!) {
-    removeIssuesFromFolder(projectId: $projectId, path: $path, issueIds: $issueIds)
+  mutation RemoveIssuesFromFolder($projectId: String!, $issueIds: [String!]!) {
+    removeIssuesFromFolder(projectId: $projectId, issueIds: $issueIds)
   }
 `;

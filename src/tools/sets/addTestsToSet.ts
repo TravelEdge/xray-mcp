@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
-import { registerTool } from "../registry.js";
-import { ADD_TESTS_TO_SET } from "./queries.js";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
+import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
+import { ADD_TESTS_TO_SET } from "./queries.js";
 
 interface AddTestsData {
   addTestsToTestSet: {
@@ -19,8 +19,7 @@ const schema = z.object({
 
 registerTool({
   name: "xray_add_tests_to_set",
-  description:
-    "Add tests to an existing test set. Tests are referenced by their Jira issue IDs.",
+  description: "Add tests to an existing test set. Tests are referenced by their Jira issue IDs.",
   accessLevel: "write",
   inputSchema: schema,
   async handler(args, _ctx) {
@@ -35,7 +34,9 @@ registerTool({
     const added = data.addTestsToTestSet.addedTests;
 
     if (format === "json") {
-      return { content: [{ type: "text" as const, text: JSON.stringify(data.addTestsToTestSet, null, 2) }] };
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data.addTestsToTestSet, null, 2) }],
+      };
     }
 
     const details = `added:${added.length} tests`;

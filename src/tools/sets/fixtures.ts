@@ -7,20 +7,29 @@ export const mockTestSet = {
   jira: { key: "PROJ-42", summary: "Login flow tests" },
   tests: {
     total: 3,
-    nodes: [{ issueId: "10001" }, { issueId: "10002" }, { issueId: "10003" }],
+    results: [{ issueId: "10001" }, { issueId: "10002" }, { issueId: "10003" }],
   },
 };
 
 export const mockTestSetSummary = {
   issueId: "10042",
   jira: { key: "PROJ-42", summary: "Login flow tests" },
-  tests: { total: 3, nodes: [{ issueId: "10001" }, { issueId: "10002" }, { issueId: "10003" }] },
+  tests: { total: 3, results: [{ issueId: "10001" }, { issueId: "10002" }, { issueId: "10003" }] },
 };
 
 export const mockTestSetSummary2 = {
   issueId: "10043",
   jira: { key: "PROJ-43", summary: "Checkout flow tests" },
-  tests: { total: 5, nodes: [{ issueId: "10004" }, { issueId: "10005" }, { issueId: "10006" }, { issueId: "10007" }, { issueId: "10008" }] },
+  tests: {
+    total: 5,
+    results: [
+      { issueId: "10004" },
+      { issueId: "10005" },
+      { issueId: "10006" },
+      { issueId: "10007" },
+      { issueId: "10008" },
+    ],
+  },
 };
 
 export const mockGetSetResponse = {

@@ -129,9 +129,8 @@ describe("Precondition tools", () => {
       const ctx = { auth: {} as never, format: "toon" as const };
       await tool.handler(
         {
-          projectKey: "PROJ",
-          summary: "User logged in",
-          preconditionType: "Manual",
+          jira: { fields: { project: { key: "PROJ" }, summary: "User logged in" } },
+          preconditionType: { name: "Manual" },
           format: "toon",
           _client: mockClient,
         },
@@ -139,7 +138,10 @@ describe("Precondition tools", () => {
       );
       expect(mockClient.executeGraphQL).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({ projectKey: "PROJ", summary: "User logged in" }),
+        expect.objectContaining({
+          jira: { fields: { project: { key: "PROJ" }, summary: "User logged in" } },
+          preconditionType: { name: "Manual" },
+        }),
       );
     });
 
@@ -149,9 +151,8 @@ describe("Precondition tools", () => {
       const ctx = { auth: {} as never, format: "toon" as const };
       const result = await tool.handler(
         {
-          projectKey: "PROJ",
-          summary: "User logged in",
-          preconditionType: "Manual",
+          jira: { fields: { project: { key: "PROJ" }, summary: "User logged in" } },
+          preconditionType: { name: "Manual" },
           format: "toon",
           _client: mockClient,
         },
@@ -171,14 +172,14 @@ describe("Precondition tools", () => {
   // xray_update_precondition
   // ---------------------------------------------------------------------------
   describe("xray_update_precondition", () => {
-    it("calls executeGraphQL with issueId and optional fields", async () => {
+    it("calls executeGraphQL with issueId and data object", async () => {
       mockClient.executeGraphQL.mockResolvedValueOnce(mockUpdatePreconditionResponse);
       const tool = findTool("xray_update_precondition");
       const ctx = { auth: {} as never, format: "toon" as const };
       await tool.handler(
         {
           issueId: "PC-1",
-          definition: "Updated definition",
+          data: { definition: "Updated definition" },
           format: "toon",
           _client: mockClient,
         },
@@ -186,7 +187,10 @@ describe("Precondition tools", () => {
       );
       expect(mockClient.executeGraphQL).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({ issueId: "PC-1", definition: "Updated definition" }),
+        expect.objectContaining({
+          issueId: "PC-1",
+          data: { definition: "Updated definition" },
+        }),
       );
     });
 
@@ -197,7 +201,7 @@ describe("Precondition tools", () => {
       const result = await tool.handler(
         {
           issueId: "PC-1",
-          preconditionType: "Cucumber",
+          data: { preconditionType: { name: "Cucumber" } },
           format: "toon",
           _client: mockClient,
         },
@@ -232,7 +236,10 @@ describe("Precondition tools", () => {
       mockClient.executeGraphQL.mockResolvedValueOnce(mockDeletePreconditionResponse);
       const tool = findTool("xray_delete_precondition");
       const ctx = { auth: {} as never, format: "toon" as const };
-      const result = await tool.handler({ issueId: "PC-1", format: "toon", _client: mockClient }, ctx);
+      const result = await tool.handler(
+        { issueId: "PC-1", format: "toon", _client: mockClient },
+        ctx,
+      );
       expect(result.content[0].text).toBe("OK:DELETED PC-1");
     });
 

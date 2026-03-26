@@ -12,7 +12,7 @@ export const GET_EXECUTION_TOON = `
       jira(fields: ["key", "summary"])
       testRuns(limit: 100) {
         total
-        nodes {
+        results {
           id
           status { name }
         }
@@ -32,7 +32,7 @@ export const GET_EXECUTION_FULL = `
       jira(fields: ["key", "summary", "status", "priority", "assignee"])
       testRuns(limit: 100) {
         total
-        nodes {
+        results {
           id
           status { name color }
           comment
@@ -100,8 +100,8 @@ export const LIST_EXECUTIONS_FULL = `
 // ─── Mutations ───────────────────────────────────────────────────────────────
 
 export const CREATE_EXECUTION = `
-  mutation CreateTestExecution($testExecution: CreateTestExecutionInput!) {
-    createTestExecution(testExecution: $testExecution) {
+  mutation CreateTestExecution($testIssueIds: [String!], $tests: [TestWithVersionInput], $testEnvironments: [String!], $jira: JSON!) {
+    createTestExecution(testIssueIds: $testIssueIds, tests: $tests, testEnvironments: $testEnvironments, jira: $jira) {
       testExecution {
         issueId
         jira(fields: ["key", "summary"])
@@ -133,8 +133,8 @@ export const REMOVE_TESTS_FROM_EXECUTION = `
 `;
 
 export const ADD_ENVIRONMENTS_TO_EXECUTION = `
-  mutation AddTestEnvironmentsToTestExecution($issueId: String!, $environments: [String!]!) {
-    addTestEnvironmentsToTestExecution(issueId: $issueId, environments: $environments) {
+  mutation AddTestEnvironmentsToTestExecution($issueId: String!, $testEnvironments: [String!]!) {
+    addTestEnvironmentsToTestExecution(issueId: $issueId, testEnvironments: $testEnvironments) {
       issueId
       testEnvironments
     }
@@ -142,10 +142,7 @@ export const ADD_ENVIRONMENTS_TO_EXECUTION = `
 `;
 
 export const REMOVE_ENVIRONMENTS_FROM_EXECUTION = `
-  mutation RemoveTestEnvironmentsFromTestExecution($issueId: String!, $environments: [String!]!) {
-    removeTestEnvironmentsFromTestExecution(issueId: $issueId, environments: $environments) {
-      issueId
-      testEnvironments
-    }
+  mutation RemoveTestEnvironmentsFromTestExecution($issueId: String!, $testEnvironments: [String!]!) {
+    removeTestEnvironmentsFromTestExecution(issueId: $issueId, testEnvironments: $testEnvironments)
   }
 `;

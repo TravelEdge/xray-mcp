@@ -3,13 +3,10 @@
 export const mockCoverableIssue = {
   issueId: "10100",
   jira: { key: "PROJ-100", summary: "User can log in" },
-  testCoverage: {
-    covered: true,
-    coveragePercentage: 75,
-    tests: {
-      total: 3,
-      results: [{ issueId: "10001" }, { issueId: "10002" }, { issueId: "10003" }],
-    },
+  status: { name: "COVERED", description: "Has test coverage", color: "#95c160" },
+  tests: {
+    total: 3,
+    results: [{ issueId: "10001" }, { issueId: "10002" }, { issueId: "10003" }],
   },
 };
 
@@ -24,25 +21,25 @@ export const mockListCoverableIssuesResponse = {
       {
         issueId: "10100",
         jira: { key: "PROJ-100", summary: "User can log in" },
-        testCoverage: { covered: true, coveragePercentage: 75 },
+        status: { name: "COVERED" },
       },
       {
         issueId: "10101",
         jira: { key: "PROJ-101", summary: "User can reset password" },
-        testCoverage: { covered: false, coveragePercentage: 0 },
+        status: { name: "UNCOVERED" },
       },
     ],
   },
 };
 
 export const mockDataset = {
-  name: "Login Test Data",
+  id: "ds-1",
+  testIssueId: "10001",
   parameters: [{ name: "username" }, { name: "password" }],
   rows: [
-    ["admin", "secret123"],
-    ["user1", "pass456"],
+    { order: 0, Values: ["admin", "secret123"] },
+    { order: 1, Values: ["user1", "pass456"] },
   ],
-  totalRows: 2,
 };
 
 export const mockGetDatasetResponse = {
@@ -50,21 +47,18 @@ export const mockGetDatasetResponse = {
 };
 
 export const mockListDatasetsResponse = {
-  getDatasets: {
-    total: 2,
-    results: [
-      {
-        name: "Login Test Data",
-        totalRows: 2,
-        parameters: [{ name: "username" }, { name: "password" }],
-      },
-      {
-        name: "Search Test Data",
-        totalRows: 5,
-        parameters: [{ name: "query" }, { name: "expectedCount" }],
-      },
-    ],
-  },
+  getDatasets: [
+    {
+      id: "ds-1",
+      testIssueId: "10001",
+      parameters: [{ name: "username" }, { name: "password" }],
+    },
+    {
+      id: "ds-2",
+      testIssueId: "10002",
+      parameters: [{ name: "query" }, { name: "expectedCount" }],
+    },
+  ],
 };
 
 export const mockCucumberFeatureContent = `Feature: User Login
@@ -76,22 +70,27 @@ export const mockCucumberFeatureContent = `Feature: User Login
 
 export const mockProjectSettings = {
   projectId: "PROJ",
-  testTypes: [
-    { name: "Manual", kind: "MANUAL" },
-    { name: "Cucumber", kind: "CUCUMBER" },
-    { name: "Generic", kind: "GENERIC" },
-  ],
-  stepStatuses: [
-    { name: "TODO", color: "#aaaaaa", description: "Not started" },
-    { name: "PASS", color: "#95c160", description: "Passed" },
-    { name: "FAIL", color: "#df5a49", description: "Failed" },
-  ],
-  testStatuses: [
-    { name: "TODO", color: "#aaaaaa", description: "Not executed" },
-    { name: "EXECUTING", color: "#f0c330", description: "In progress" },
-    { name: "PASS", color: "#95c160", description: "Passed" },
-    { name: "FAIL", color: "#df5a49", description: "Failed" },
-  ],
+  testEnvironments: ["Chrome", "Firefox"],
+  testTypeSettings: {
+    testTypes: [
+      { name: "Manual", kind: "MANUAL" },
+      { name: "Cucumber", kind: "CUCUMBER" },
+      { name: "Generic", kind: "GENERIC" },
+    ],
+    defaultTestTypeId: "1",
+  },
+  testStepSettings: {
+    fields: [{ id: "1", name: "Action" }],
+  },
+  testRunCustomFieldSettings: {
+    fields: [{ id: "1", name: "Browser" }],
+  },
+  testCoverageSettings: {
+    coverableIssueTypeIds: ["10001"],
+    epicIssuesRelation: true,
+    issueSubTasksRelation: false,
+  },
+  defectIssueTypes: ["Bug"],
 };
 
 export const mockGetProjectSettingsResponse = {

@@ -61,7 +61,10 @@ describe("xray_get_test_details", () => {
   it("returns TOON formatted test on success", async () => {
     const client = makeMockClient(mockGetTestResponse);
     const tool = findTool("xray_get_test_details");
-    const result = await tool.handler({ issueId: "PROJ-123", format: "toon", _client: client }, ctx);
+    const result = await tool.handler(
+      { issueId: "PROJ-123", format: "toon", _client: client },
+      ctx,
+    );
 
     expect(result.content[0].type).toBe("text");
     expect(result.content[0].text).toContain("PROJ-123");
@@ -74,7 +77,10 @@ describe("xray_get_test_details", () => {
   it("returns JSON format when format=json", async () => {
     const client = makeMockClient(mockGetTestResponse);
     const tool = findTool("xray_get_test_details");
-    const result = await tool.handler({ issueId: "PROJ-123", format: "json", _client: client }, ctx);
+    const result = await tool.handler(
+      { issueId: "PROJ-123", format: "json", _client: client },
+      ctx,
+    );
 
     const text = result.content[0].text;
     expect(() => JSON.parse(text)).not.toThrow();
@@ -83,7 +89,10 @@ describe("xray_get_test_details", () => {
   it("returns ERR:NOT_FOUND when getTest is null", async () => {
     const client = makeMockClient(mockGetTestNullResponse);
     const tool = findTool("xray_get_test_details");
-    const result = await tool.handler({ issueId: "PROJ-999", format: "toon", _client: client }, ctx);
+    const result = await tool.handler(
+      { issueId: "PROJ-999", format: "toon", _client: client },
+      ctx,
+    );
 
     expect(result.content[0].text).toContain("ERR:NOT_FOUND");
     expect(result.content[0].text).toContain("PROJ-999");
@@ -94,7 +103,10 @@ describe("xray_get_expanded_test", () => {
   it("returns expanded test with callTestStep data", async () => {
     const client = makeMockClient(mockGetExpandedTestResponse);
     const tool = findTool("xray_get_expanded_test");
-    const result = await tool.handler({ issueId: "PROJ-123", format: "toon", _client: client }, ctx);
+    const result = await tool.handler(
+      { issueId: "PROJ-123", format: "toon", _client: client },
+      ctx,
+    );
 
     expect(result.content[0].text).toContain("PROJ-123");
     // Should NOT have the fallback hint when callTestStep data is present
@@ -104,7 +116,10 @@ describe("xray_get_expanded_test", () => {
   it("appends fallback hint when callTestStep is null", async () => {
     const client = makeMockClient(mockGetExpandedTestNoCallStepResponse);
     const tool = findTool("xray_get_expanded_test");
-    const result = await tool.handler({ issueId: "PROJ-123", format: "toon", _client: client }, ctx);
+    const result = await tool.handler(
+      { issueId: "PROJ-123", format: "toon", _client: client },
+      ctx,
+    );
 
     expect(result.content[0].text).toContain("PROJ-123");
     expect(result.content[0].text).toContain("unavailable");
@@ -122,7 +137,10 @@ describe("xray_get_expanded_test", () => {
       executeRestText: vi.fn().mockResolvedValue(""),
     };
     const tool = findTool("xray_get_expanded_test");
-    const result = await tool.handler({ issueId: "PROJ-123", format: "toon", _client: client }, ctx);
+    const result = await tool.handler(
+      { issueId: "PROJ-123", format: "toon", _client: client },
+      ctx,
+    );
 
     expect(result.content[0].text).toContain("PROJ-123");
     expect(result.content[0].text).toContain("unavailable");
@@ -132,7 +150,10 @@ describe("xray_get_expanded_test", () => {
   it("returns ERR:NOT_FOUND when getTest is null", async () => {
     const client = makeMockClient(mockGetTestNullResponse);
     const tool = findTool("xray_get_expanded_test");
-    const result = await tool.handler({ issueId: "PROJ-999", format: "toon", _client: client }, ctx);
+    const result = await tool.handler(
+      { issueId: "PROJ-999", format: "toon", _client: client },
+      ctx,
+    );
 
     expect(result.content[0].text).toContain("ERR:NOT_FOUND");
   });
@@ -158,13 +179,22 @@ describe("xray_list_tests", () => {
 
   it("includes pagination header with next hint when more results exist", async () => {
     const client = makeMockClient({
-      getTests: { total: 100, results: [{ issueId: "PROJ-1", testType: { name: "Manual" }, status: { name: "TODO" }, jira: { key: "PROJ-1", summary: "t1" }, folder: null, steps: { nodes: [] } }] },
+      getTests: {
+        total: 100,
+        results: [
+          {
+            issueId: "PROJ-1",
+            testType: { name: "Manual" },
+            status: { name: "TODO" },
+            jira: { key: "PROJ-1", summary: "t1" },
+            folder: null,
+            steps: [],
+          },
+        ],
+      },
     });
     const tool = findTool("xray_list_tests");
-    const result = await tool.handler(
-      { limit: 1, start: 0, format: "toon", _client: client },
-      ctx,
-    );
+    const result = await tool.handler({ limit: 1, start: 0, format: "toon", _client: client }, ctx);
 
     const text = result.content[0].text;
     expect(text).toContain("next: start=1");
@@ -224,9 +254,8 @@ describe("xray_create_test", () => {
     const tool = findTool("xray_create_test");
     const result = await tool.handler(
       {
-        projectKey: "PROJ",
-        summary: "New login test",
-        testType: "Manual",
+        jira: { fields: { project: { key: "PROJ" }, summary: "New login test" } },
+        testType: { name: "Manual" },
         format: "toon",
         _client: client,
       },
@@ -244,9 +273,8 @@ describe("xray_create_test", () => {
     const tool = findTool("xray_create_test");
     await tool.handler(
       {
-        projectKey: "PROJ",
-        summary: "Test summary",
-        testType: "Cucumber",
+        jira: { fields: { project: { key: "PROJ" }, summary: "Test summary" } },
+        testType: { name: "Cucumber" },
         gherkin: "Feature: Login\nScenario: ...",
         format: "toon",
         _client: client,
@@ -257,9 +285,8 @@ describe("xray_create_test", () => {
     expect(vi.mocked(client.executeGraphQL)).toHaveBeenCalledWith(
       expect.stringContaining("CreateTest"),
       expect.objectContaining({
-        projectKey: "PROJ",
-        summary: "Test summary",
-        testType: "Cucumber",
+        jira: { fields: { project: { key: "PROJ" }, summary: "Test summary" } },
+        testType: { name: "Cucumber" },
       }),
     );
   });
@@ -284,7 +311,7 @@ describe("xray_update_test_type", () => {
     const client = makeMockClient(mockUpdateTestTypeResponse);
     const tool = findTool("xray_update_test_type");
     const result = await tool.handler(
-      { issueId: "PROJ-123", testType: "Cucumber", format: "toon", _client: client },
+      { issueId: "PROJ-123", testType: { name: "Cucumber" }, format: "toon", _client: client },
       ctx,
     );
 
@@ -318,7 +345,12 @@ describe("xray_update_unstructured_definition", () => {
     const client = makeMockClient(mockUpdateUnstructuredResponse);
     const tool = findTool("xray_update_unstructured_definition");
     const result = await tool.handler(
-      { issueId: "PROJ-123", definition: "Test definition text", format: "toon", _client: client },
+      {
+        issueId: "PROJ-123",
+        unstructured: "Test definition text",
+        format: "toon",
+        _client: client,
+      },
       ctx,
     );
 
@@ -334,9 +366,7 @@ describe("xray_add_test_step", () => {
     const result = await tool.handler(
       {
         issueId: "PROJ-123",
-        action: "Navigate to login page",
-        data: "/login",
-        result: "Page loads",
+        step: { action: "Navigate to login page", data: "/login", result: "Page loads" },
         format: "toon",
         _client: client,
       },
@@ -355,9 +385,8 @@ describe("xray_update_test_step", () => {
     const tool = findTool("xray_update_test_step");
     const result = await tool.handler(
       {
-        issueId: "PROJ-123",
         stepId: "step-1",
-        action: "Updated action",
+        step: { action: "Updated action" },
         format: "toon",
         _client: client,
       },
@@ -374,10 +403,7 @@ describe("xray_remove_test_step", () => {
   it("returns OK:DELETED confirmation with step ID", async () => {
     const client = makeMockClient(mockRemoveTestStepResponse);
     const tool = findTool("xray_remove_test_step");
-    const result = await tool.handler(
-      { issueId: "PROJ-123", stepId: "step-1", format: "toon", _client: client },
-      ctx,
-    );
+    const result = await tool.handler({ stepId: "step-1", format: "toon", _client: client }, ctx);
 
     const text = result.content[0].text;
     expect(text).toContain("OK:DELETED");

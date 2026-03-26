@@ -94,10 +94,9 @@ export const LIST_SETS_FULL = `
 // ---------------------------------------------------------------------------
 
 export const CREATE_SET = `
-  mutation createTestSet($projectKey: String!, $summary: String!, $testIssueIds: [String]) {
+  mutation createTestSet($jira: JSON!, $testIssueIds: [String!]) {
     createTestSet(
-      projectKey: $projectKey
-      summary: $summary
+      jira: $jira
       testIssueIds: $testIssueIds
     ) {
       testSet {

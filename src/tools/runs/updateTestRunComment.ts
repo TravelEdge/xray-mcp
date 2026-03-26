@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
-import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, writeConfirmation } from "../shared/formatHelpers.js";
 import { UPDATE_RUN_COMMENT } from "./queries.js";
 
 registerTool({
@@ -18,20 +18,16 @@ registerTool({
     const id = args.id as string;
     const comment = args.comment as string;
 
-    await client.executeGraphQL<{ updateTestRunComment: string }>(
-      UPDATE_RUN_COMMENT,
-      { id, comment },
-    );
+    await client.executeGraphQL<{ updateTestRunComment: string }>(UPDATE_RUN_COMMENT, {
+      id,
+      comment,
+    });
 
     return {
       content: [
         {
           type: "text" as const,
-          text: writeConfirmation(
-            "UPDATED",
-            `run:${id}`,
-            `comment updated`,
-          ),
+          text: writeConfirmation("UPDATED", `run:${id}`, `comment updated`),
         },
       ],
     };

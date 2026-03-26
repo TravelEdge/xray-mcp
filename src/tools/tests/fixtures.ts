@@ -5,11 +5,7 @@ export const mockTest = {
   testType: { name: "Manual" },
   status: { name: "TODO" },
   folder: { path: "/Regression/Login" },
-  steps: {
-    nodes: [
-      { id: "step-1", action: "Navigate to login", data: "/login", result: "Page loads" },
-    ],
-  },
+  steps: [{ id: "step-1", action: "Navigate to login", data: "/login", result: "Page loads" }],
   preconditions: {
     results: [{ issueId: "PROJ-100", jira: { key: "PROJ-100", summary: "User exists" } }],
   },
@@ -21,46 +17,38 @@ export const mockTest2 = {
   testType: { name: "Manual" },
   status: { name: "PASS" },
   folder: { path: "/Regression/Login" },
-  steps: { nodes: [] },
+  steps: [],
   preconditions: { results: [] },
   jira: { key: "PROJ-124", summary: "Logout test" },
 };
 
 export const mockExpandedTest = {
   ...mockTest,
-  steps: {
-    nodes: [
-      {
-        id: "step-1",
-        action: "Navigate to login",
-        data: "/login",
-        result: "Page loads",
-        callTestStep: {
-          test: { issueId: "PROJ-200", jira: { key: "PROJ-200", summary: "Called test" } },
-          steps: {
-            nodes: [
-              { id: "nested-1", action: "Click login", data: null, result: "Login form shown" },
-            ],
-          },
-        },
+  steps: [
+    {
+      id: "step-1",
+      action: "Navigate to login",
+      data: "/login",
+      result: "Page loads",
+      callTestStep: {
+        test: { issueId: "PROJ-200", jira: { key: "PROJ-200", summary: "Called test" } },
+        steps: [{ id: "nested-1", action: "Click login", data: null, result: "Login form shown" }],
       },
-    ],
-  },
+    },
+  ],
 };
 
 export const mockTestNoCallStep = {
   ...mockTest,
-  steps: {
-    nodes: [
-      {
-        id: "step-1",
-        action: "Navigate to login",
-        data: "/login",
-        result: "Page loads",
-        callTestStep: null,
-      },
-    ],
-  },
+  steps: [
+    {
+      id: "step-1",
+      action: "Navigate to login",
+      data: "/login",
+      result: "Page loads",
+      callTestStep: null,
+    },
+  ],
 };
 
 export const mockGetTestResponse = { getTest: mockTest };
@@ -89,9 +77,11 @@ export const mockDeleteTestResponse = { deleteTest: "PROJ-123" };
 
 export const mockUpdateTestTypeResponse = { updateTestType: { issueId: "PROJ-123" } };
 
-export const mockUpdateGherkinResponse = { updateGherkinDefinition: "PROJ-123" };
+export const mockUpdateGherkinResponse = { updateGherkinTestDefinition: { issueId: "PROJ-123" } };
 
-export const mockUpdateUnstructuredResponse = { updateUnstructuredDefinition: "PROJ-123" };
+export const mockUpdateUnstructuredResponse = {
+  updateUnstructuredTestDefinition: { issueId: "PROJ-123" },
+};
 
 export const mockAddTestStepResponse = {
   addTestStep: { id: "step-new", action: "New action", data: null, result: null },

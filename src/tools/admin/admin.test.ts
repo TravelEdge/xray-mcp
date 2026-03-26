@@ -10,15 +10,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { TOOL_REGISTRY } from "../registry.js";
 import {
-  mockGetCoverableIssueResponse,
-  mockListCoverableIssuesResponse,
-  mockGetDatasetResponse,
-  mockListDatasetsResponse,
   mockCucumberFeatureContent,
+  mockGetCoverableIssueResponse,
+  mockGetDatasetResponse,
+  mockGetIssueLinkTypesResponse,
   mockGetProjectSettingsResponse,
   mockGetStatusesResponse,
   mockGetStepStatusesResponse,
-  mockGetIssueLinkTypesResponse,
+  mockListCoverableIssuesResponse,
+  mockListDatasetsResponse,
 } from "./fixtures.js";
 
 // ─── Mock client ─────────────────────────────────────────────────────────────
@@ -57,7 +57,13 @@ function makeArgs(extra: Record<string, unknown>, client: XrayClient): Record<st
   return { format: "toon" as const, _client: client, ...extra };
 }
 
-const ctx = { auth: { credentials: { xrayClientId: "id", xrayClientSecret: "secret", xrayRegion: "global" as const }, source: "env" as const }, format: "toon" as const };
+const ctx = {
+  auth: {
+    credentials: { xrayClientId: "id", xrayClientSecret: "secret", xrayRegion: "global" as const },
+    source: "env" as const,
+  },
+  format: "toon" as const,
+};
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -91,10 +97,10 @@ describe("xray_get_coverable_issue", () => {
     vi.mocked(client.executeGraphQL).mockResolvedValueOnce(mockGetCoverableIssueResponse);
 
     const tool = findTool("xray_get_coverable_issue");
-    const result = await tool.handler(
-      makeArgs({ issueId: "PROJ-100", format: "json" }, client),
-      { ...ctx, format: "json" },
-    );
+    const result = await tool.handler(makeArgs({ issueId: "PROJ-100", format: "json" }, client), {
+      ...ctx,
+      format: "json",
+    });
 
     const parsed = JSON.parse(result.content[0].text);
     expect(parsed.issueId).toBe("10100");
@@ -112,10 +118,7 @@ describe("xray_list_coverable_issues", () => {
     vi.mocked(client.executeGraphQL).mockResolvedValueOnce(mockListCoverableIssuesResponse);
 
     const tool = findTool("xray_list_coverable_issues");
-    const result = await tool.handler(
-      makeArgs({ limit: 50, start: 0 }, client),
-      ctx,
-    );
+    const result = await tool.handler(makeArgs({ limit: 50, start: 0 }, client), ctx);
 
     expect(result.content[0].text).toContain("Coverable Issues");
     expect(result.content[0].text).toContain("of 2");
@@ -127,10 +130,7 @@ describe("xray_list_coverable_issues", () => {
     });
 
     const tool = findTool("xray_list_coverable_issues");
-    const result = await tool.handler(
-      makeArgs({ limit: 50, start: 50 }, client),
-      ctx,
-    );
+    const result = await tool.handler(makeArgs({ limit: 50, start: 50 }, client), ctx);
 
     expect(result.content[0].text).toContain("Coverable Issues");
   });
@@ -147,9 +147,9 @@ describe("xray_get_dataset", () => {
     vi.mocked(client.executeGraphQL).mockResolvedValueOnce(mockGetDatasetResponse);
 
     const tool = findTool("xray_get_dataset");
-    const result = await tool.handler(makeArgs({ id: "ds-123" }, client), ctx);
+    const result = await tool.handler(makeArgs({ testIssueId: "10001" }, client), ctx);
 
-    expect(result.content[0].text).toContain("Login Test Data");
+    expect(result.content[0].text).toContain("ds-1");
     expect(result.content[0].text).toContain("rows");
   });
 
@@ -157,7 +157,7 @@ describe("xray_get_dataset", () => {
     vi.mocked(client.executeGraphQL).mockResolvedValueOnce({ getDataset: null });
 
     const tool = findTool("xray_get_dataset");
-    const result = await tool.handler(makeArgs({ id: "bad-id" }, client), ctx);
+    const result = await tool.handler(makeArgs({ testIssueId: "bad-id" }, client), ctx);
 
     expect(result.content[0].text).toContain("ERR:NOT_FOUND");
   });
@@ -170,17 +170,14 @@ describe("xray_list_datasets", () => {
     client = makeMockClient();
   });
 
-  it("returns paginated dataset list", async () => {
+  it("returns dataset list", async () => {
     vi.mocked(client.executeGraphQL).mockResolvedValueOnce(mockListDatasetsResponse);
 
     const tool = findTool("xray_list_datasets");
-    const result = await tool.handler(
-      makeArgs({ projectId: "PROJ", limit: 50, start: 0 }, client),
-      ctx,
-    );
+    const result = await tool.handler(makeArgs({ testIssueIds: ["10001", "10002"] }, client), ctx);
 
     expect(result.content[0].text).toContain("Datasets");
-    expect(result.content[0].text).toContain("of 2");
+    expect(result.content[0].text).toContain("2 returned");
   });
 });
 
@@ -195,10 +192,7 @@ describe("xray_export_cucumber_features", () => {
     vi.mocked(client.executeRestText).mockResolvedValueOnce(mockCucumberFeatureContent);
 
     const tool = findTool("xray_export_cucumber_features");
-    const result = await tool.handler(
-      makeArgs({ issueKeys: ["PROJ-1"] }, client),
-      ctx,
-    );
+    const result = await tool.handler(makeArgs({ issueKeys: ["PROJ-1"] }, client), ctx);
 
     expect(result.content[0].text).toContain("Feature: User Login");
     expect(vi.mocked(client.executeRestText)).toHaveBeenCalledWith(
@@ -211,10 +205,7 @@ describe("xray_export_cucumber_features", () => {
     vi.mocked(client.executeRestText).mockResolvedValueOnce("feature content");
 
     const tool = findTool("xray_export_cucumber_features");
-    await tool.handler(
-      makeArgs({ issueKeys: ["PROJ-1", "PROJ-2", "PROJ-3"] }, client),
-      ctx,
-    );
+    await tool.handler(makeArgs({ issueKeys: ["PROJ-1", "PROJ-2", "PROJ-3"] }, client), ctx);
 
     const callArg = vi.mocked(client.executeRestText).mock.calls[0][1] as string;
     expect(callArg).toContain("PROJ-1;PROJ-2;PROJ-3");
@@ -233,7 +224,7 @@ describe("xray_get_project_settings", () => {
     vi.mocked(client.executeGraphQL).mockResolvedValueOnce(mockGetProjectSettingsResponse);
 
     const tool = findTool("xray_get_project_settings");
-    const result = await tool.handler(makeArgs({ projectId: "PROJ" }, client), ctx);
+    const result = await tool.handler(makeArgs({ projectIdOrKey: "PROJ" }, client), ctx);
 
     expect(result.content[0].text).toContain("PROJ");
   });
@@ -242,7 +233,7 @@ describe("xray_get_project_settings", () => {
     vi.mocked(client.executeGraphQL).mockResolvedValueOnce({ getProjectSettings: null });
 
     const tool = findTool("xray_get_project_settings");
-    const result = await tool.handler(makeArgs({ projectId: "UNKNOWN" }, client), ctx);
+    const result = await tool.handler(makeArgs({ projectIdOrKey: "UNKNOWN" }, client), ctx);
 
     expect(result.content[0].text).toContain("ERR:NOT_FOUND");
   });
@@ -346,10 +337,10 @@ describe("xray_list_issue_link_types", () => {
     vi.mocked(client.executeGraphQL).mockResolvedValueOnce(mockGetIssueLinkTypesResponse);
 
     const tool = findTool("xray_list_issue_link_types");
-    const result = await tool.handler(
-      makeArgs({ format: "json" }, client),
-      { ...ctx, format: "json" },
-    );
+    const result = await tool.handler(makeArgs({ format: "json" }, client), {
+      ...ctx,
+      format: "json",
+    });
 
     const parsed = JSON.parse(result.content[0].text);
     expect(Array.isArray(parsed)).toBe(true);

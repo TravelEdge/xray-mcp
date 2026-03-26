@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { ToonFormatter } from "../../formatters/ToonFormatter.js";
-import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
-import { registerTool } from "../registry.js";
-import { GET_SET_TOON, GET_SET_FULL } from "./queries.js";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
+import { ToonFormatter } from "../../formatters/ToonFormatter.js";
+import { registerTool } from "../registry.js";
+import { FORMAT_PARAM, selectQuery } from "../shared/formatHelpers.js";
+import { GET_SET_FULL, GET_SET_TOON } from "./queries.js";
 
 const schema = z.object({
   issueId: z.string().describe("Jira issue ID of the test set (e.g. '10042')"),
@@ -25,12 +25,16 @@ registerTool({
 
     if (!data.getTestSet) {
       return {
-        content: [{ type: "text" as const, text: `ERR:NOT_FOUND No test set found for issueId ${issueId}` }],
+        content: [
+          { type: "text" as const, text: `ERR:NOT_FOUND No test set found for issueId ${issueId}` },
+        ],
       };
     }
 
     if (format === "json") {
-      return { content: [{ type: "text" as const, text: JSON.stringify(data.getTestSet, null, 2) }] };
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data.getTestSet, null, 2) }],
+      };
     }
 
     const formatter = new ToonFormatter(format);

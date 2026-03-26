@@ -298,6 +298,81 @@ If a GraphQL response contains both `data` and `errors`, the data is returned (n
 
 ---
 
+## Schema Verification Pipeline
+
+The project includes an introspection script (`scripts/introspect-schema.ts`) that validates all GraphQL operations against the live Xray Cloud API.
+
+```
+pnpm introspect:audit
+  │
+  ├─ Authenticate with Xray Cloud (JWT token exchange)
+  │
+  ├─ Introspect GraphQL schema (__schema query)
+  │   └─ Save to schema/xray-schema.json + schema/xray-schema-summary.md
+  │
+  ├─ Parse all queries from src/tools/*/queries.ts
+  │   └─ Extract root field, arguments, variable types
+  │
+  ├─ Audit each query against introspected schema
+  │   ├─ Root field exists on Query/Mutation type
+  │   ├─ All arguments exist with correct types
+  │   └─ Check for deprecation warnings
+  │
+  ├─ Smoke-test 9 REST v2 endpoints (non-404 check)
+  │
+  └─ Generate schema/audit-report.md
+```
+
+The `schema/` directory is gitignored — each developer runs against their own Xray Cloud instance.
+
+---
+
+## Docker Image
+
+The Docker image uses a two-stage build optimized for minimal size and security:
+
+| Stage | Base | Purpose |
+|-------|------|---------|
+| `builder` | `node:24-alpine` | Install deps, compile TypeScript |
+| `runtime` | `node:24-alpine` | Copy `dist/` + production `node_modules` only |
+
+Key properties:
+- **HTTP transport only** — `TRANSPORT=http` is set in the image; stdio is not available in Docker
+- **Non-root** — runs as the `node` user (uid 1000)
+- **tini as PID 1** — proper SIGTERM/SIGINT forwarding, zombie process reaping
+- **HEALTHCHECK** — built-in Docker health check hitting `/healthz`
+- **Source maps** — `--enable-source-maps` for production error stacks
+- **~50MB image** — Alpine base with only production dependencies
+
+---
+
+## Helm Chart
+
+The Helm chart (`helm/`) deploys the HTTP-mode Docker image to Kubernetes with production defaults:
+
+| Resource | Description |
+|----------|-------------|
+| `Deployment` | Runs xray-mcp pods with liveness (`/healthz`) and readiness (`/readyz`) probes |
+| `Service` | ClusterIP service exposing port 80 → container port 3000 |
+| `Secret` | Created from `credentials.clientId`/`clientSecret`, or reference `existingSecret` for external secret management |
+| `ConfigMap` | Xray region and credential mode settings |
+| `Ingress` | Optional — enable with `ingress.enabled=true` |
+| `HPA` | Optional — enable with `autoscaling.enabled=true`, targets 70% CPU |
+| `PDB` | Enabled by default — `minAvailable: 1` to prevent downtime during rollouts |
+| `ServiceAccount` | Created per release with optional annotations (for workload identity) |
+
+### External secrets integration
+
+For production, use `existingSecret` to reference a Secret provisioned by CSI Secret Store Driver, External Secrets Operator, or similar:
+
+```yaml
+existingSecret: my-xray-credentials  # Must contain XRAY_CLIENT_ID and XRAY_CLIENT_SECRET keys
+```
+
+This prevents plaintext credentials in Helm values and supports rotation.
+
+---
+
 ## Source References
 
 | Concept | Primary file |

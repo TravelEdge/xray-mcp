@@ -18,12 +18,10 @@ export const GET_TEST_TOON = `
       status { name }
       jira(fields: ["key", "summary"])
       steps {
-        nodes {
-          id
-          action
-          data
-          result
-        }
+        id
+        action
+        data
+        result
       }
     }
   }
@@ -31,7 +29,7 @@ export const GET_TEST_TOON = `
 
 /**
  * FULL variant: all fields including relations.
- * Resolver count: ~18 (getTest, testType, status, jira, steps, steps.nodes,
+ * Resolver count: ~18 (getTest, testType, status, jira, steps,
  *   steps.customFields, steps.attachments, folder, preconditions,
  *   preconditions.results, preconditions.results.jira, testSets,
  *   testSets.results, testPlans, testPlans.results, testExecutions,
@@ -49,14 +47,12 @@ export const GET_TEST_FULL = `
       jira(fields: ["key", "summary", "assignee", "priority", "labels"])
       folder { path }
       steps {
-        nodes {
-          id
-          action
-          data
-          result
-          customFields { id name value }
-          attachments { id filename }
-        }
+        id
+        action
+        data
+        result
+        customFields { id name value }
+        attachments { id filename }
       }
       preconditions(limit: 100) {
         total
@@ -98,24 +94,20 @@ export const GET_EXPANDED_TEST_TOON = `
       status { name }
       jira(fields: ["key", "summary"])
       steps {
-        nodes {
-          id
-          action
-          data
-          result
-          callTestStep {
-            test {
-              issueId
-              jira(fields: ["key", "summary"])
-            }
-            steps {
-              nodes {
-                id
-                action
-                data
-                result
-              }
-            }
+        id
+        action
+        data
+        result
+        callTestStep {
+          test {
+            issueId
+            jira(fields: ["key", "summary"])
+          }
+          steps {
+            id
+            action
+            data
+            result
           }
         }
       }
@@ -125,9 +117,9 @@ export const GET_EXPANDED_TEST_TOON = `
 
 /**
  * FULL variant for expanded test.
- * Resolver count: ~22 (getTest, testType, status, jira, steps, steps.nodes,
+ * Resolver count: ~22 (getTest, testType, status, jira, steps,
  *   callTestStep, callTestStep.test, callTestStep.test.jira,
- *   callTestStep.test.testType, callTestStep.steps, callTestStep.steps.nodes,
+ *   callTestStep.test.testType, callTestStep.steps,
  *   folder, preconditions, preconditions.results, preconditions.results.jira,
  *   testSets, testSets.results, testPlans, testPlans.results,
  *   testExecutions, testExecutions.results)
@@ -144,25 +136,21 @@ export const GET_EXPANDED_TEST_FULL = `
       jira(fields: ["key", "summary", "assignee", "priority"])
       folder { path }
       steps {
-        nodes {
-          id
-          action
-          data
-          result
-          callTestStep {
-            test {
-              issueId
-              testType { name }
-              jira(fields: ["key", "summary"])
-            }
-            steps {
-              nodes {
-                id
-                action
-                data
-                result
-              }
-            }
+        id
+        action
+        data
+        result
+        callTestStep {
+          test {
+            issueId
+            testType { name }
+            jira(fields: ["key", "summary"])
+          }
+          steps {
+            id
+            action
+            data
+            result
           }
         }
       }
@@ -194,8 +182,8 @@ export const GET_EXPANDED_TEST_FULL = `
  * Resolver count: ~7 (getTests, total, results, testType, status, jira, steps.nodes count)
  */
 export const LIST_TESTS_TOON = `
-  query GetTests($jql: String, $limit: Int!, $start: Int, $folder: String) {
-    getTests(jql: $jql, limit: $limit, start: $start, folder: { path: $folder }) {
+  query GetTests($jql: String, $limit: Int!, $start: Int, $folder: FolderSearchInput) {
+    getTests(jql: $jql, limit: $limit, start: $start, folder: $folder) {
       total
       results {
         issueId
@@ -203,7 +191,7 @@ export const LIST_TESTS_TOON = `
         status { name }
         jira(fields: ["key", "summary"])
         folder { path }
-        steps { nodes { id } }
+        steps { id }
       }
     }
   }
@@ -216,8 +204,8 @@ export const LIST_TESTS_TOON = `
  *   preconditions.results)
  */
 export const LIST_TESTS_FULL = `
-  query GetTests($jql: String, $limit: Int!, $start: Int, $folder: String) {
-    getTests(jql: $jql, limit: $limit, start: $start, folder: { path: $folder }) {
+  query GetTests($jql: String, $limit: Int!, $start: Int, $folder: FolderSearchInput) {
+    getTests(jql: $jql, limit: $limit, start: $start, folder: $folder) {
       total
       results {
         issueId
@@ -227,12 +215,10 @@ export const LIST_TESTS_FULL = `
         jira(fields: ["key", "summary", "assignee", "priority", "labels"])
         folder { path }
         steps {
-          nodes {
-            id
-            action
-            data
-            result
-          }
+          id
+          action
+          data
+          result
         }
         preconditions(limit: 10) {
           total
@@ -249,19 +235,17 @@ export const LIST_TESTS_FULL = `
 
 export const CREATE_TEST = `
   mutation CreateTest(
-    $projectKey: String!
-    $summary: String!
-    $testType: String
-    $folder: String
-    $steps: [CreateTestStepInput!]
+    $jira: JSON!
+    $testType: UpdateTestTypeInput
+    $folderPath: String
+    $steps: [CreateStepInput!]
     $gherkin: String
     $preconditionIssueIds: [String!]
   ) {
     createTest(
-      projectKey: $projectKey
-      summary: $summary
-      testType: { name: $testType }
-      folder: { path: $folder }
+      jira: $jira
+      testType: $testType
+      folderPath: $folderPath
       steps: $steps
       gherkin: $gherkin
       preconditionIssueIds: $preconditionIssueIds
@@ -282,31 +266,32 @@ export const DELETE_TEST = `
 `;
 
 export const UPDATE_TEST_TYPE = `
-  mutation UpdateTestType($issueId: String!, $testType: String!) {
-    updateTestType(issueId: $issueId, testType: { name: $testType }) {
+  mutation UpdateTestType($issueId: String!, $testType: UpdateTestTypeInput!) {
+    updateTestType(issueId: $issueId, testType: $testType) {
       issueId
     }
   }
 `;
 
 export const UPDATE_GHERKIN_DEFINITION = `
-  mutation UpdateGherkinDefinition($issueId: String!, $gherkin: String!) {
-    updateGherkinDefinition(issueId: $issueId, gherkin: $gherkin)
+  mutation UpdateGherkinTestDefinition($issueId: String!, $gherkin: String!) {
+    updateGherkinTestDefinition(issueId: $issueId, gherkin: $gherkin) {
+      issueId
+    }
   }
 `;
 
 export const UPDATE_UNSTRUCTURED_DEFINITION = `
-  mutation UpdateUnstructuredDefinition($issueId: String!, $definition: String!) {
-    updateUnstructuredDefinition(issueId: $issueId, definition: $definition)
+  mutation UpdateUnstructuredTestDefinition($issueId: String!, $unstructured: String!) {
+    updateUnstructuredTestDefinition(issueId: $issueId, unstructured: $unstructured) {
+      issueId
+    }
   }
 `;
 
 export const ADD_TEST_STEP = `
-  mutation AddTestStep($issueId: String!, $action: String!, $data: String, $result: String) {
-    addTestStep(
-      issueId: $issueId
-      step: { action: $action, data: $data, result: $result }
-    ) {
+  mutation AddTestStep($issueId: String!, $step: CreateStepInput!) {
+    addTestStep(issueId: $issueId, step: $step) {
       id
       action
       data
@@ -316,18 +301,8 @@ export const ADD_TEST_STEP = `
 `;
 
 export const UPDATE_TEST_STEP = `
-  mutation UpdateTestStep(
-    $issueId: String!
-    $stepId: String!
-    $action: String
-    $data: String
-    $result: String
-  ) {
-    updateTestStep(
-      issueId: $issueId
-      stepId: $stepId
-      step: { action: $action, data: $data, result: $result }
-    ) {
+  mutation UpdateTestStep($stepId: String!, $step: UpdateStepInput!) {
+    updateTestStep(stepId: $stepId, step: $step) {
       id
       action
       data
@@ -337,8 +312,8 @@ export const UPDATE_TEST_STEP = `
 `;
 
 export const REMOVE_TEST_STEP = `
-  mutation RemoveTestStep($issueId: String!, $stepId: String!) {
-    removeTestStep(issueId: $issueId, stepId: $stepId)
+  mutation RemoveTestStep($stepId: String!) {
+    removeTestStep(stepId: $stepId)
   }
 `;
 
