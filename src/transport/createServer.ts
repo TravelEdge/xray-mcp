@@ -10,6 +10,7 @@ import type { ToolContext } from "../types/index.js";
 export interface ServerConfig {
   name?: string;
   version?: string;
+  credentialOverride?: import("../types/index.js").AuthContext; // Provided in HTTP mode; undefined = resolve from env
 }
 
 /**
@@ -25,7 +26,7 @@ export interface ServerConfig {
  * by Phase 2 tool imports.
  */
 export function createServer(config: ServerConfig = {}): McpServer {
-  const { name = "xray-mcp", version = "0.1.0" } = config;
+  const { name = "xray-mcp", version = "0.1.0", credentialOverride } = config;
 
   // D-10: Instantiate CredentialStore but do NOT call resolveFromEnv yet.
   // Credentials are validated lazily on the first tool call.
@@ -41,7 +42,8 @@ export function createServer(config: ServerConfig = {}): McpServer {
 
     server.tool(tool.name, tool.description, schemaShape, async (args: Record<string, unknown>) => {
       // D-10: Resolve credentials lazily on first tool call
-      const auth = credentialStore.resolveFromEnv();
+      // HTTP mode passes pre-resolved credentials via credentialOverride (D-33)
+      const auth = credentialOverride ?? credentialStore.resolveFromEnv();
       const mode = credentialStore.getCredentialMode();
       const writeGuard = new WriteGuard(mode);
 

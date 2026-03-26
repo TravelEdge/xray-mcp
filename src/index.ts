@@ -19,10 +19,9 @@ async function main(): Promise<void> {
   const transport = process.env.TRANSPORT;
 
   if (transport === "http") {
-    // HTTP transport (TRNS-02) will be implemented in Phase 3.
-    // For now, exit with a clear message rather than silently failing.
-    console.error("HTTP transport not yet implemented. Use stdio (default) or omit TRANSPORT.");
-    process.exit(1);
+    const { startHttpServer } = await import("./transport/http.js");
+    startHttpServer();
+    return;
   }
 
   // Default: stdio transport (TRNS-01)

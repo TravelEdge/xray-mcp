@@ -47,6 +47,36 @@ export class CredentialStore {
   }
 
   /**
+   * Resolves credentials from HTTP request headers.
+   * Used in HTTP transport mode for per-request credential isolation (D-31).
+   *
+   * Headers:
+   * - X-Xray-Client-Id: Xray Cloud client ID (required)
+   * - X-Xray-Client-Secret: Xray Cloud client secret (required)
+   * - Region is server-wide via XRAY_REGION env var only (D-32)
+   */
+  resolveFromHeaders(headers: { clientId?: string; clientSecret?: string }): AuthContext {
+    const { clientId, clientSecret } = headers;
+    const region = (process.env.XRAY_REGION || "global") as XrayRegion;
+
+    if (!clientId) {
+      throw new XrayAuthError(
+        "ERR:AUTH_MISSING_CRED No client ID in request headers\n-> Set X-Xray-Client-Id header",
+      );
+    }
+    if (!clientSecret) {
+      throw new XrayAuthError(
+        "ERR:AUTH_MISSING_CRED No client secret in request headers\n-> Set X-Xray-Client-Secret header",
+      );
+    }
+
+    return {
+      credentials: { xrayClientId: clientId, xrayClientSecret: clientSecret, xrayRegion: region },
+      source: "header",
+    };
+  }
+
+  /**
    * Returns the configured credential mode from XRAY_CREDENTIAL_MODE env var.
    * Defaults to "strict" if not set.
    * Throws XrayAuthError for invalid values.
