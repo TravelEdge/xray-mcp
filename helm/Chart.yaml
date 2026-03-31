@@ -8,9 +8,9 @@ keywords:
   - mcp
   - xray
   - test-management
-home: https://github.com/triparc/xray-mcp
+home: https://github.com/TravelEdge/xray-mcp
 sources:
-  - https://github.com/triparc/xray-mcp
+  - https://github.com/TravelEdge/xray-mcp
 maintainers:
-  - name: TripArc
-    url: https://github.com/triparc
+  - name: TravelEdge
+    url: https://github.com/TravelEdge

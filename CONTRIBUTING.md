@@ -25,7 +25,7 @@ Thank you for your interest in contributing! This guide covers everything you ne
 
 ```bash
 # Clone the repository
-git clone https://github.com/triparc/xray-mcp.git
+git clone https://github.com/TravelEdge/xray-mcp.git
 cd xray-mcp
 
 # Enable Corepack (activates pnpm without a global install)
@@ -319,7 +319,7 @@ import "./xray_my_new_tool.js";
 
 ## Reporting Issues
 
-Use [GitHub Issues](https://github.com/triparc/xray-mcp/issues) to report bugs or request features.
+Use [GitHub Issues](https://github.com/TravelEdge/xray-mcp/issues) to report bugs or request features.
 
 When reporting a bug, include:
 

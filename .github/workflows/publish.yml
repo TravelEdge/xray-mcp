@@ -73,7 +73,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/triparc/xray-mcp
+          images: ghcr.io/traveledge/xray-mcp
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
