@@ -4,9 +4,6 @@
 .agents/
 *.md
 
-# Source (compiled output in dist/ is all we need)
-src/
-
 # Dependencies (reinstalled in Docker for correct platform binaries)
 node_modules/
 
@@ -40,5 +37,7 @@ helm/
 
 # Config files only needed at dev time
 biome.json
-tsconfig.json
 vitest.config.ts
+
+# Schema (generated per-instance, not needed in image)
+schema/

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/triparc/xray-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/triparc/xray-mcp/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@triparc/xray-mcp)](https://www.npmjs.com/package/@triparc/xray-mcp)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D22-brightgreen)](https://nodejs.org/)
 
 A production-grade MCP server for [Xray Cloud Test Management](https://www.getxray.app/) — 90 tools covering the complete API surface with token-optimized TOON responses.
@@ -432,4 +432,4 @@ Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for de
 
 ## License
 
-[MIT](LICENSE)
+[Apache License 2.0](LICENSE)
