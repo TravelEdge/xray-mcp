@@ -1,6 +1,6 @@
 {
   "name": "@triparc/xray-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Production-grade MCP server for Xray Cloud Test Management API with token-optimized TOON responses",
   "type": "module",
   "main": "dist/index.js",
