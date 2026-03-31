@@ -51,7 +51,7 @@
     "atlassian",
     "model-context-protocol"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/triparc/xray-mcp.git"

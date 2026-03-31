@@ -4,15 +4,12 @@ on:
   push:
     tags: ['v*.*.*']
 
-permissions:
-  contents: read
-  packages: write
-  id-token: write  # Required for npm OIDC provenance (D-44, D-47)
-
 jobs:
   validate-version:
     name: Validate tag matches package.json
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -29,7 +26,10 @@ jobs:
   publish-npm:
     name: Publish to npm
     needs: validate-version
-    runs-on: ubuntu-latest  # Must be cloud-hosted for OIDC (D-47)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Required for npm OIDC provenance
     steps:
       - uses: actions/checkout@v4
 
@@ -37,7 +37,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
           cache: 'pnpm'
 
@@ -56,6 +56,9 @@ jobs:
     name: Publish to GHCR
     needs: validate-version
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
 
