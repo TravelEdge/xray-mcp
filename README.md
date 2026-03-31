@@ -1,6 +1,6 @@
 # @triparc/xray-mcp
 
-[![CI](https://github.com/triparc/xray-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/triparc/xray-mcp/actions/workflows/ci.yml)
+[![CI](https://github.com/TravelEdge/xray-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/TravelEdge/xray-mcp/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@triparc/xray-mcp)](https://www.npmjs.com/package/@triparc/xray-mcp)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D22-brightgreen)](https://nodejs.org/)
@@ -165,7 +165,7 @@ docker run -d \
   -e XRAY_CLIENT_SECRET=your-client-secret \
   -e XRAY_CREDENTIAL_MODE=fully-shared \
   -p 3000:3000 \
-  ghcr.io/triparc/xray-mcp:latest
+  ghcr.io/traveledge/xray-mcp:latest
 ```
 
 Health and readiness endpoints:
@@ -180,7 +180,7 @@ Health and readiness endpoints:
 ```yaml
 services:
   xray-mcp:
-    image: ghcr.io/triparc/xray-mcp:latest
+    image: ghcr.io/traveledge/xray-mcp:latest
     ports:
       - "3000:3000"
     environment:
@@ -220,7 +220,7 @@ helm install xray-mcp ./helm \
 | Value | Default | Description |
 |-------|---------|-------------|
 | `replicaCount` | `1` | Number of pod replicas |
-| `image.repository` | `ghcr.io/triparc/xray-mcp` | Container image |
+| `image.repository` | `ghcr.io/traveledge/xray-mcp` | Container image |
 | `image.tag` | `""` (uses chart `appVersion`) | Image tag |
 | `xray.region` | `global` | Xray API region: `global`, `us`, `eu`, `au` |
 | `xray.credentialMode` | `strict` | Credential mode (see below) |

@@ -3,7 +3,7 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/triparc/xray-mcp
+  repository: ghcr.io/traveledge/xray-mcp
   tag: ""  # Defaults to chart appVersion
   pullPolicy: IfNotPresent
 

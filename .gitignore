@@ -9,3 +9,5 @@ coverage/
 .env
 .env.*
 schema/
+AzuriteConfig
+__azurite_db_*
