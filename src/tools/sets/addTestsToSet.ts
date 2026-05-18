@@ -7,7 +7,7 @@ import { ADD_TESTS_TO_SET } from "./queries.js";
 interface AddTestsData {
   addTestsToTestSet: {
     addedTests: string[];
-    warnings?: string[];
+    warning?: string;
   };
 }
 

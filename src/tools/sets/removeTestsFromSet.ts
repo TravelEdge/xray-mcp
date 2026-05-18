@@ -7,7 +7,7 @@ import { REMOVE_TESTS_FROM_SET } from "./queries.js";
 interface RemoveTestsData {
   removeTestsFromTestSet: {
     removedTests: string[];
-    warnings?: string[];
+    warning?: string;
   };
 }
 
