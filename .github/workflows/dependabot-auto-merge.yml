@@ -1,0 +1,37 @@
+name: Dependabot auto-merge
+
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  auto-merge:
+    name: Auto-merge patch updates
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+
+      - name: Enable auto-merge for patch updates only
+        if: steps.meta.outputs.update-type == 'version-update:semver-patch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr merge --auto --squash "$PR_URL"
+          echo "::notice::Auto-merge enabled for patch update: ${{ steps.meta.outputs.dependency-names }} ${{ steps.meta.outputs.previous-version }} -> ${{ steps.meta.outputs.new-version }}"
+
+      - name: Comment on non-patch updates
+        if: steps.meta.outputs.update-type != 'version-update:semver-patch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          UPDATE_TYPE: ${{ steps.meta.outputs.update-type }}
+        run: |
+          gh pr comment "$PR_URL" --body "Auto-merge skipped — this is a \`$UPDATE_TYPE\` update, which requires manual review per repo policy. Patch-only auto-merge is configured in \`.github/workflows/dependabot-auto-merge.yml\`."
