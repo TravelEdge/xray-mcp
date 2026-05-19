@@ -37,7 +37,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
     "@types/express": "^5.0.6",
-    "@types/node": "^22",
+    "@types/node": "^25",
     "@vitest/coverage-v8": "^4.1.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
