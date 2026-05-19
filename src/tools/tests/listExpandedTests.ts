@@ -62,7 +62,7 @@ registerTool({
       data = await client.executeGraphQL<{
         getTests: { total: number; results: unknown[] };
       }>(query, { jql, limit, start, folder: folder ? { path: folder } : undefined });
-    } catch (err) {
+    } catch (_err) {
       // FALLBACK: if expanded query fails, retry with TOON query
       expansionUnavailable = true;
       data = await client.executeGraphQL<{

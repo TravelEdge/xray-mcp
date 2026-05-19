@@ -16,7 +16,7 @@ registerTool({
     "This returns Xray-specific link types used for test-to-requirement coverage.",
   accessLevel: "read",
   inputSchema,
-  handler: async (args, ctx) => {
+  handler: async (args, _ctx) => {
     const { format } = args as z.infer<typeof inputSchema>;
     const client = args._client as XrayClient;
 

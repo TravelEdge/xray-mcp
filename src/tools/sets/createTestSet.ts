@@ -10,7 +10,7 @@ interface CreateSetData {
       issueId: string;
       jira?: { key?: string; summary?: string };
     } | null;
-    warnings?: string[];
+    warning?: string;
   };
 }
 

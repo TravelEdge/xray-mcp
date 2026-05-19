@@ -22,7 +22,7 @@ registerTool({
     "Get a test dataset by test issue ID, including its parameters (columns) and rows of test data.",
   accessLevel: "read",
   inputSchema,
-  handler: async (args, ctx) => {
+  handler: async (args, _ctx) => {
     const { testIssueId, testExecIssueId, testPlanIssueId, callTestIssueId, format } =
       args as z.infer<typeof inputSchema>;
     const client = args._client as XrayClient;

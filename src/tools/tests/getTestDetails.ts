@@ -17,7 +17,7 @@ registerTool({
     issueId: z.string().describe("The Jira issue ID of the test (e.g. PROJ-123)"),
     format: FORMAT_PARAM,
   }),
-  handler: async (args, ctx) => {
+  handler: async (args, _ctx) => {
     const { issueId, format } = args as { issueId: string; format: string };
     const client = (args._client as XrayClient) ?? undefined;
 

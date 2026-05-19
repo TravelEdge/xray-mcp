@@ -19,7 +19,7 @@ registerTool({
     "List available test step statuses in Xray. Optionally scope to a specific project to get project-specific step statuses.",
   accessLevel: "read",
   inputSchema,
-  handler: async (args, ctx) => {
+  handler: async (args, _ctx) => {
     const { projectId, format } = args as z.infer<typeof inputSchema>;
     const client = args._client as XrayClient;
 

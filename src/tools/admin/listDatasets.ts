@@ -17,7 +17,7 @@ registerTool({
   description: "List test datasets, optionally filtered by test, execution, or plan issue IDs.",
   accessLevel: "read",
   inputSchema,
-  handler: async (args, ctx) => {
+  handler: async (args, _ctx) => {
     const { testIssueIds, testExecIssueIds, testPlanIssueIds, format } = args as z.infer<
       typeof inputSchema
     >;
