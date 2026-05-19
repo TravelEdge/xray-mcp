@@ -123,7 +123,7 @@ describe("folder tools", () => {
   it("xray_delete_folder description contains warning", () => {
     const tool = TOOL_REGISTRY.find((t) => t.name === "xray_delete_folder");
     expect(tool).toBeDefined();
-    expect(tool!.description).toContain("WARNING");
+    expect(tool?.description).toContain("WARNING");
   });
 
   // ── xray_rename_folder ───────────────────────────────────────────────────

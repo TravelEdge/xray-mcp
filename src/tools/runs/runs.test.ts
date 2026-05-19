@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { XrayClient } from "../../clients/XrayClientInterface.js";
 import { TOOL_REGISTRY } from "../registry.js";
 

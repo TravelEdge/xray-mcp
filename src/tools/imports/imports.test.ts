@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { TOOL_REGISTRY } from "../registry.js";
 import { mockImportResult } from "./fixtures.js";
 
