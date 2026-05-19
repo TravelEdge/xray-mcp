@@ -1,5 +1,5 @@
 # Stage 1: Build — compile TypeScript
-FROM node:24-alpine AS builder
+FROM node:26-alpine AS builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY scripts/ ./scripts/
 RUN pnpm build
 
 # Stage 2: Runtime — minimal production image
-FROM node:24-alpine AS runtime
+FROM node:26-alpine AS runtime
 
 # Install tini for proper signal handling as PID 1 (not included in Alpine by default)
 RUN apk add --no-cache tini
