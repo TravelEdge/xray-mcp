@@ -53,14 +53,14 @@ export const mockCreateSetResponse = {
       issueId: "10044",
       jira: { key: "PROJ-44", summary: "New test set" },
     },
-    warnings: [],
+    warning: null,
   },
 };
 
 export const mockCreateSetNullResponse = {
   createTestSet: {
     testSet: null,
-    warnings: ["Creation failed"],
+    warning: "Creation failed",
   },
 };
 

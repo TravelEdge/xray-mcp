@@ -103,7 +103,7 @@ export const CREATE_SET = `
         issueId
         jira(fields: ["key", "summary"])
       }
-      warnings
+      warning
     }
   }
 `;
