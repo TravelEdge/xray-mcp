@@ -118,7 +118,7 @@ export const ADD_TESTS_TO_SET = `
   mutation addTestsToTestSet($issueId: String!, $testIssueIds: [String]!) {
     addTestsToTestSet(issueId: $issueId, testIssueIds: $testIssueIds) {
       addedTests
-      warnings
+      warning
     }
   }
 `;
@@ -127,7 +127,7 @@ export const REMOVE_TESTS_FROM_SET = `
   mutation removeTestsFromTestSet($issueId: String!, $testIssueIds: [String]!) {
     removeTestsFromTestSet(issueId: $issueId, testIssueIds: $testIssueIds) {
       removedTests
-      warnings
+      warning
     }
   }
 `;

@@ -71,13 +71,13 @@ export const mockDeleteSetResponse = {
 export const mockAddTestsResponse = {
   addTestsToTestSet: {
     addedTests: ["10001", "10002"],
-    warnings: [],
+    warning: null,
   },
 };
 
 export const mockRemoveTestsResponse = {
   removeTestsFromTestSet: {
     removedTests: ["10001"],
-    warnings: [],
+    warning: null,
   },
 };
