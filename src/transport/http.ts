@@ -12,6 +12,7 @@ import {
   createRequestLoggingMiddleware,
   createSecurityHeadersMiddleware,
 } from "./security.js";
+import { mountRestApi } from "./restapi.js";
 
 /**
  * Creates the Express HTTP app for Streamable HTTP MCP transport.
@@ -249,6 +250,9 @@ export function createHttpApp() {
   app.delete("/mcp", (_req: Request, res: Response) => {
     res.status(405).json({ error: "Method Not Allowed" });
   });
+
+  // RESTAPI-01, RESTAPI-02, RESTAPI-03: Mount REST API for external integrations
+  mountRestApi(app);
 
   // OBJ-02: Error handling middleware — must be last
   app.use(createErrorHandlingMiddleware());
