@@ -2,59 +2,52 @@
 
 ## TL;DR - How to Use Your Helm-Deployed MCP Server
 
-You have xray-mcp running in Kubernetes via Helm Chart. Here's how to connect Claude Desktop:
+You have xray-mcp running in Kubernetes via Helm Chart. Here's how to connect Claude Desktop **with ZERO local setup**:
 
-### Configuration Example (fully-shared mode - most common)
+### Configuration (Copy & Paste)
 
-**File**: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
+**File**: 
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- Linux: `~/.config/Claude/claude_desktop_config.json`
+
+**Replace these values:**
+- `YOUR_DOMAIN`: Your K8s ingress domain (e.g., `xray-mcp.dev.triparcdev.com`)
+- `YOUR_CLIENT_ID`: Xray Cloud API client ID
+- `YOUR_CLIENT_SECRET`: Xray Cloud API client secret
 
 ```json
 {
   "mcpServers": {
     "xray": {
-      "transport": "http",
-      "url": "https://xray-mcp.yourcompany.com/mcp",
+      "command": "curl",
+      "args": [
+        "-s",
+        "-X",
+        "POST",
+        "https://YOUR_DOMAIN/mcp?client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET",
+        "-H",
+        "Content-Type: application/json",
+        "-d",
+        "@-"
+      ],
+      "transport": "stdio",
       "autoApprove": ["xray_get_*", "xray_list_*"]
     }
   }
 }
 ```
 
-### For Windows/Cursor:
+**That's it!** No local proxy, no npm, no setup. Just copy, paste, and restart Claude Desktop.
 
-**File**: `%APPDATA%\Claude\claude_desktop_config.json`
+---
 
-```json
-{
-  "mcpServers": {
-    "xray": {
-      "transport": "http",
-      "url": "https://xray-mcp.yourcompany.com/mcp",
-      "autoApprove": ["xray_get_*", "xray_list_*"]
-    }
-  }
-}
-```
+## Why This Works
 
-### If using `strict` or `shared-reads` credential mode:
-
-Add headers with your Xray credentials:
-
-```json
-{
-  "mcpServers": {
-    "xray": {
-      "transport": "http",
-      "url": "https://xray-mcp.yourcompany.com/mcp",
-      "headers": {
-        "X-Xray-Client-Id": "your-client-id-here",
-        "X-Xray-Client-Secret": "your-client-secret-here"
-      },
-      "autoApprove": ["xray_get_*", "xray_list_*"]
-    }
-  }
-}
-```
+1. **curl is built-in** — Every OS has curl, no installation needed
+2. **Query parameters for auth** — Server accepts `?client_id=...&client_secret=...` in URL
+3. **stdio transport** — Claude pipes JSON to curl, reads response back
+4. **K8s exposure** — Your Helm chart already exposes the server via ingress/DNS
 
 ---
 

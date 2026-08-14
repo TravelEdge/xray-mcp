@@ -221,8 +221,13 @@ export function createHttpApp() {
     const credentialStore = new CredentialStore();
 
     // D-31: Extract per-request credentials from custom headers
-    const clientId = req.headers["x-xray-client-id"] as string | undefined;
-    const clientSecret = req.headers["x-xray-client-secret"] as string | undefined;
+    // Fall back to query parameters for clients that can't send headers (e.g., Claude Desktop)
+    const clientId =
+      (req.headers["x-xray-client-id"] as string | undefined) ||
+      (req.query.client_id as string | undefined);
+    const clientSecret =
+      (req.headers["x-xray-client-secret"] as string | undefined) ||
+      (req.query.client_secret as string | undefined);
 
     // Build per-request credential context
     const auth = credentialStore.resolveFromHeaders({ clientId, clientSecret });

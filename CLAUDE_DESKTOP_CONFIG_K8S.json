@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "xray": {
+      "command": "curl",
+      "args": [
+        "-s",
+        "-X",
+        "POST",
+        "https://xray-mcp.dev.triparcdev.com/mcp?client_id=5913FB91E8B64317A204C435C7025BE1&client_secret=09c85a97076503f31c5ce6ff13c569a33a5c3a69752bd311a9be1f07b14fe92e",
+        "-H",
+        "Content-Type: application/json",
+        "-d",
+        "@-"
+      ],
+      "transport": "stdio",
+      "autoApprove": ["xray_get_*", "xray_list_*"]
+    }
+  }
+}
