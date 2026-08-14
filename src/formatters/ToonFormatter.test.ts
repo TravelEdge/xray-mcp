@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { EntityType } from "../types/index.js";
 import { statusIcon, ToonFormatter } from "./ToonFormatter.js";
 
 // ---------------------------------------------------------------------------
@@ -274,7 +275,7 @@ describe("ToonFormatter", () => {
     // 1. Unknown entityType fallback (line 257 — the `if (!handler)` branch)
     it("falls back to JSON.stringify for unknown entity type", () => {
       const data = { foo: "bar" };
-      const result = fmt.format("unknown_type" as any, data);
+      const result = fmt.format("unknown_type" as unknown as EntityType, data);
       expect(result).toBe(JSON.stringify(data));
     });
 
