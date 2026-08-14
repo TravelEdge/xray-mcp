@@ -11,3 +11,6 @@ coverage/
 schema/
 AzuriteConfig
 __azurite_db_*
+.docs-private/
+*.secrets
+*.credentials
