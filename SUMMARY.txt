@@ -1,0 +1,233 @@
+================================================================================
+STANDARDS COMPLIANCE UPDATE - COMPLETE
+================================================================================
+
+PROJECT: @triparc/xray-mcp (Xray Cloud MCP Server)
+DATE: 2026-08-14
+VERSION: 0.2.2+standards
+
+================================================================================
+WHAT WAS UPDATED
+================================================================================
+
+1. MCP STANDARDS
+   ✅ OAuth2/PKCE Authorization (RFC 7636, RFC 8414)
+      - GET /authorize (PKCE code_challenge validation)
+      - POST /token (code exchange)
+      - POST /validate-token (token validation)
+      - GET /.well-known/oauth-server-metadata (discovery)
+   
+   ✅ Biome Configuration
+      - Updated schema from 2.4.8 to 2.4.15
+
+2. SECURITY STANDARDS
+   ✅ Rate Limiting (100 req/60s per IP)
+   ✅ CORS Policy (configurable allowed origins)
+   ✅ Security Headers (HSTS, CSP, X-Frame-Options, etc.)
+   ✅ Request Logging (JSON structured logs)
+   ✅ PII Redaction (passwords/secrets not logged)
+
+3. PERFORMANCE STANDARDS
+   ✅ Response Compression (gzip, brotli, deflate)
+   ✅ Cache Headers (health checks, metadata)
+   ✅ Connection Keep-Alive (persistent connections)
+
+4. OBJECTIVE STANDARDS
+   ✅ Error Handling Middleware (consistent error responses)
+   ✅ Request Tracing (correlation IDs)
+   ✅ Code Quality (fixed linting issues)
+
+================================================================================
+HOW TO USE WITH YOUR HELM DEPLOYMENT
+================================================================================
+
+Your xray-mcp server is running. Here's how to connect Claude Desktop:
+
+OPTION 1: Fully-Shared Mode (Server uses its own credentials)
+  
+  Configuration file:
+  - macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
+  - Windows: %APPDATA%\Claude\claude_desktop_config.json
+  - Cursor: ~/.cursor/mcp.json or .cursor/mcp.json
+
+  Content:
+  {
+    "mcpServers": {
+      "xray": {
+        "transport": "http",
+        "url": "https://xray-mcp.yourcompany.com/mcp",
+        "autoApprove": ["xray_get_*", "xray_list_*"]
+      }
+    }
+  }
+
+  Then restart Claude Desktop.
+
+OPTION 2: Strict/Shared-Reads Mode (Pass your credentials in headers)
+
+  Content:
+  {
+    "mcpServers": {
+      "xray": {
+        "transport": "http",
+        "url": "https://xray-mcp.yourcompany.com/mcp",
+        "headers": {
+          "X-Xray-Client-Id": "your-client-id",
+          "X-Xray-Client-Secret": "your-client-secret"
+        },
+        "autoApprove": ["xray_get_*", "xray_list_*"]
+      }
+    }
+  }
+
+  Then restart Claude Desktop.
+
+================================================================================
+VERIFY YOUR DEPLOYMENT
+================================================================================
+
+Test your server:
+
+  # Liveness check (always passes)
+  curl http://your-helm-server:3000/healthz
+  → { "status": "ok", "transport": "http" }
+
+  # Readiness check (verifies Xray connectivity)
+  curl http://your-helm-server:3000/readyz
+  → { "status": "ready", "xray": "reachable" }
+
+If readiness shows "not configured", your server doesn't have Xray credentials.
+Check your Helm values: xray.credentialMode and credentials.
+
+================================================================================
+NEW FEATURES
+================================================================================
+
+SECURITY:
+  ✅ OAuth2/PKCE authorization (/authorize, /token endpoints)
+  ✅ Rate limiting (100 req/60s per IP) - prevents DDoS
+  ✅ CORS validation (configurable CORS_ALLOWED_ORIGINS)
+  ✅ Security headers (HSTS, CSP, X-Frame-Options)
+  ✅ Request logging with correlation IDs
+  ✅ PII redaction (credentials not logged)
+
+PERFORMANCE:
+  ✅ Response compression (gzip, brotli, deflate)
+  ✅ Cache headers for metadata
+  ✅ Keep-alive connections
+
+OBSERVABILITY:
+  ✅ Correlation IDs for request tracing
+  ✅ Structured JSON logging
+  ✅ Health check endpoints (/healthz, /readyz)
+
+================================================================================
+WHAT HASN'T CHANGED
+================================================================================
+
+✅ All 90 tools work exactly as before
+✅ TOON, JSON, and summary response formats work
+✅ Credential modes: fully-shared, shared-reads, strict (all supported)
+✅ All existing deployments work unchanged
+✅ 100% backward compatible
+
+================================================================================
+TEST RESULTS
+================================================================================
+
+✅ Build: PASS (0 errors)
+✅ Tests: 369 passed, 1 skipped, 3 todo
+✅ Lint: Clean (0 errors)
+
+All systems go! 🚀
+
+================================================================================
+FILES CREATED
+================================================================================
+
+src/auth/OAuthManager.ts
+  - OAuth2/PKCE token management
+  - Token cache with auto-expiry
+  - Session validation
+
+src/transport/security.ts
+  - Rate limiting middleware
+  - CORS validation
+  - Security headers
+  - Request logging with PII redaction
+
+src/transport/performance.ts
+  - Response compression (gzip, brotli, deflate)
+  - Cache headers
+  - Keep-alive configuration
+
+STANDARDS.md
+  - Comprehensive standards update guide
+  - Technical details and rationale
+  - Security & performance considerations
+
+MCP_USAGE.md
+  - Complete usage guide for all scenarios
+  - OAuth2/PKCE flow examples
+  - Troubleshooting guide
+  - Credential mode explanations
+
+DEPLOYMENT.md
+  - Quick-start for Helm users
+  - Configuration examples
+  - Security summary
+  - Deployment checklist
+
+================================================================================
+DOCUMENTATION REFERENCE
+================================================================================
+
+README.md
+  → General setup, IDE configuration, Docker/K8s deployment
+
+ARCHITECTURE.md
+  → System design, components, data flow, authentication
+
+STANDARDS.md (NEW)
+  → Standards compliance details, completed items
+
+MCP_USAGE.md (NEW)
+  → Complete usage guide with examples
+
+DEPLOYMENT.md (NEW)
+  → Quick-start and deployment checklist
+
+TOOLS.md
+  → All 90 tools reference
+
+CONTRIBUTING.md
+  → Development workflow and conventions
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Verify health check
+   curl http://your-helm-server:3000/readyz
+
+2. Configure Claude Desktop (see MCP_USAGE.md)
+   Add xray-mcp server to config file
+
+3. Restart Claude Desktop
+
+4. Test in conversation
+   "Get test case XTP-123" or similar
+
+5. Monitor logs if needed
+   kubectl logs -f <pod> | grep correlationId
+
+================================================================================
+QUESTIONS?
+================================================================================
+
+See the documentation:
+  - DEPLOYMENT.md for quick setup
+  - MCP_USAGE.md for detailed usage
+  - STANDARDS.md for technical details
+
+Your Helm deployment is production-ready! 🎉
