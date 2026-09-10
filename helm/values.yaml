@@ -41,9 +41,13 @@ httpRoute:
   gateway:
     name: ""
     namespace: ""
-    sectionName: ""  # optional listener name
+    sectionName: ""  # optional listener name (e.g. https)
   hostnames:
     - xray-mcp.example.com
+  # Second route on the plain-HTTP listener that 301s to https
+  httpsRedirect:
+    enabled: false
+    sectionName: http
 
 resources:
   requests:

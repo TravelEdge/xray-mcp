@@ -18,4 +18,26 @@ spec:
     - backendRefs:
         - name: {{ include "xray-mcp.fullname" . }}
           port: {{ .Values.service.port }}
+{{- if .Values.httpRoute.httpsRedirect.enabled }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "xray-mcp.fullname" . }}-redirect
+  labels:
+    {{- include "xray-mcp.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ .Values.httpRoute.gateway.name }}
+      namespace: {{ .Values.httpRoute.gateway.namespace }}
+      sectionName: {{ .Values.httpRoute.httpsRedirect.sectionName }}
+  hostnames:
+    {{- toYaml .Values.httpRoute.hostnames | nindent 4 }}
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+{{- end }}
 {{- end }}
