@@ -16,6 +16,7 @@ A production-grade MCP server for [Xray Cloud Test Management](https://www.getxr
 - **Three credential modes** — `strict` (personal), `shared-reads` (team reads), `fully-shared` (internal server)
 - **Four regional endpoints** — `global`, `us`, `eu`, `au` — select via `XRAY_REGION`
 - **Per-request credential isolation** in HTTP mode — each `POST /mcp` resolves its own credentials from request headers
+- **Org-wide connector mode** — built-in OAuth sign-in lets Claude.ai, ChatGPT and Copilot users connect with their *own* Xray API key; nothing stored server-side
 - **Zero extra dependencies** — native Node.js 22 `fetch` for all HTTP; no `graphql-request`, no `axios`
 
 ## Prerequisites
@@ -227,6 +228,12 @@ helm install xray-mcp ./helm \
 | `credentials.clientId` | `""` | Xray client ID (chart creates a Secret) |
 | `credentials.clientSecret` | `""` | Xray client secret (chart creates a Secret) |
 | `existingSecret` | `""` | Name of existing Secret (bypasses chart Secret creation) |
+| `oauth.enabled` | `false` | Enable OAuth sign-in for connector clients (see [Connector mode](#connector-mode-claudeai-chatgpt-copilot)) |
+| `oauth.publicUrl` | `""` | Public base URL of the server, e.g. `https://xray-mcp.yourcompany.com` |
+| `oauth.encryptionKey` | `""` | 32 random bytes, base64 (`openssl rand -base64 32`); or put `OAUTH_ENCRYPTION_KEY` in `existingSecret` |
+| `httpRoute.enabled` | `false` | Create a Gateway API `HTTPRoute` instead of an Ingress |
+| `httpRoute.gateway.name` / `.namespace` | `""` | Existing Gateway to attach to |
+| `httpRoute.hostnames` | `xray-mcp.example.com` | Route hostnames |
 | `ingress.enabled` | `false` | Enable Kubernetes Ingress |
 | `ingress.hosts` | `xray-mcp.example.com` | Ingress hostname |
 | `autoscaling.enabled` | `false` | Enable HPA |
@@ -245,7 +252,7 @@ helm install xray-mcp ./helm \
   --set xray.credentialMode=shared-reads
 ```
 
-The Secret must contain keys `XRAY_CLIENT_ID` and `XRAY_CLIENT_SECRET`.
+The Secret must contain keys `XRAY_CLIENT_ID` and `XRAY_CLIENT_SECRET`, plus `OAUTH_ENCRYPTION_KEY` when `oauth.enabled=true`.
 
 ### Production deployment with Ingress and TLS
 
@@ -287,6 +294,27 @@ Once deployed, configure your MCP client to use the HTTP transport pointing to t
 
 In `fully-shared` mode, the headers are optional — the server uses its own credentials for all operations.
 
+## Connector mode (Claude.ai, ChatGPT, Copilot)
+
+Hosted assistants add MCP servers as *connectors* and cannot send custom headers — they only speak OAuth. Connector mode makes the server its own OAuth 2.1 provider: the sign-in page asks each user for their **personal Xray API key pair**, validates it against Xray, and issues a token. Every Xray action is then attributed to that user.
+
+Nothing is stored server-side: tokens are AES-256-GCM sealed blobs containing the user's credentials, so any replica can serve any token and restarts lose nothing. Dynamic client registration and PKCE are supported, so no per-client setup is needed.
+
+Enable it with two settings:
+
+```bash
+helm upgrade --install xray-mcp ./helm \
+  --set existingSecret=my-xray-credentials \
+  --set oauth.enabled=true \
+  --set oauth.publicUrl=https://xray-mcp.yourcompany.com
+```
+
+Then, in Claude (Owner/Admin → Settings → Connectors → Add custom connector), enter `https://xray-mcp.yourcompany.com/mcp` and enable it for the organization. Each user clicks *Connect*, enters their Xray Client ID/Secret once (a Jira admin generates these under Jira Settings → Apps → Xray → API Keys), and is done.
+
+Header-based clients (Claude Code, Cursor, VS Code) keep working unchanged when connector mode is on.
+
+Revocation: delete the user's Xray API key (their token stops working immediately) or rotate `OAUTH_ENCRYPTION_KEY` (everyone signs in again).
+
 ## Environment Variables
 
 ### Server configuration
@@ -299,7 +327,9 @@ In `fully-shared` mode, the headers are optional — the server uses its own cre
 | `XRAY_CREDENTIAL_MODE` | No | `strict` | Credential mode: `strict`, `shared-reads`, `fully-shared` |
 | `TRANSPORT` | No | `stdio` | Transport: `stdio` or `http` |
 | `PORT` | No | `3000` | HTTP listen port (HTTP mode only) |
-| `ALLOWED_HOSTS` | No | — | Comma-separated allowed hosts for DNS rebinding protection (HTTP mode only) |
+| `ALLOWED_HOSTS` | No | — | Comma-separated allowed hosts for DNS rebinding protection (HTTP mode only). Rejects any other `Host`, including Kubernetes probe traffic — leave unset behind a load balancer |
+| `PUBLIC_URL` | No | — | Public base URL of this server. With `OAUTH_ENCRYPTION_KEY`, enables connector mode (HTTP mode only) |
+| `OAUTH_ENCRYPTION_KEY` | No | — | 32 random bytes, base64-encoded. Seals OAuth tokens; rotate to sign everyone out |
 
 ### HTTP request headers (HTTP mode only)
 
@@ -307,10 +337,11 @@ In `strict` and `shared-reads` modes, HTTP callers provide their Xray credential
 
 | Header | Required | Description |
 |--------|----------|-------------|
-| `X-Xray-Client-Id` | Yes | Per-request Xray client ID |
-| `X-Xray-Client-Secret` | Yes | Per-request Xray client secret |
+| `X-Xray-Client-Id` | Yes* | Per-request Xray client ID |
+| `X-Xray-Client-Secret` | Yes* | Per-request Xray client secret |
+| `Authorization: Bearer …` | Yes* | OAuth token issued in connector mode (used instead of the two headers above) |
 
-In `fully-shared` mode, the server uses its own `XRAY_CLIENT_ID` / `XRAY_CLIENT_SECRET` for all requests and the headers are not required.
+\* One of: the header pair, a bearer token, or — in `fully-shared` mode only — nothing (the server's own `XRAY_CLIENT_ID` / `XRAY_CLIENT_SECRET` are used). Requests with none of these get `401`.
 
 ## Credential Modes
 

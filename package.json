@@ -1,6 +1,6 @@
 {
   "name": "@triparc/xray-mcp",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Production-grade MCP server for Xray Cloud Test Management API with token-optimized TOON responses",
   "type": "module",
   "main": "dist/index.js",
@@ -32,6 +32,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "express": "^5.2.1",
+    "express-rate-limit": "8.5.2",
     "zod": "^3.25.76"
   },
   "devDependencies": {

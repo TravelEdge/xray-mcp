@@ -35,6 +35,16 @@ ingress:
   #    hosts:
   #      - xray-mcp.example.com
 
+# Gateway API route (alternative to Ingress). Attaches to an existing Gateway.
+httpRoute:
+  enabled: false
+  gateway:
+    name: ""
+    namespace: ""
+    sectionName: ""  # optional listener name
+  hostnames:
+    - xray-mcp.example.com
+
 resources:
   requests:
     cpu: 100m
@@ -59,9 +69,18 @@ xray:
   region: global
   credentialMode: strict
 
+# OAuth sign-in for MCP clients that cannot send custom headers (Claude.ai, ChatGPT, Copilot connectors).
+# Users sign in with their own Xray API key pair; nothing is stored server-side.
+# Requires publicUrl and an OAUTH_ENCRYPTION_KEY (32 random bytes, base64: `openssl rand -base64 32`)
+# supplied either via oauth.encryptionKey or the OAUTH_ENCRYPTION_KEY key of existingSecret.
+oauth:
+  enabled: false
+  publicUrl: ""          # e.g. https://xray-mcp.example.com — must match how clients reach the server
+  encryptionKey: ""      # only used when existingSecret is empty
+
 # Existing secret name (for CSI Secret Store / External Secrets Operator).
 # When set, chart does NOT create a Secret resource. The Deployment references this secret.
-# The secret must contain XRAY_CLIENT_ID and XRAY_CLIENT_SECRET keys.
+# The secret must contain XRAY_CLIENT_ID and XRAY_CLIENT_SECRET keys, plus OAUTH_ENCRYPTION_KEY when oauth.enabled.
 existingSecret: ""
 
 # Only used when existingSecret is empty. Chart creates a Secret with these values.
