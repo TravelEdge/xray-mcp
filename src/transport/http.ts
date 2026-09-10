@@ -31,6 +31,9 @@ export function createHttpApp() {
     ? allowedHostsRaw.split(",").map((h) => h.trim())
     : undefined;
   const app = createMcpExpressApp({ host: "0.0.0.0", allowedHosts });
+  // Behind a load balancer / gateway: rate limiters must key on the client IP from
+  // X-Forwarded-For, not the proxy's. Number of trusted hops; harmless with no proxy.
+  app.set("trust proxy", Number(process.env.TRUST_PROXY ?? 1));
 
   // TRNS-05: Health check — liveness probe
   app.get("/healthz", (_req: Request, res: Response) => {

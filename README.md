@@ -328,6 +328,7 @@ Revocation: delete the user's Xray API key (their token stops working immediatel
 | `TRANSPORT` | No | `stdio` | Transport: `stdio` or `http` |
 | `PORT` | No | `3000` | HTTP listen port (HTTP mode only) |
 | `ALLOWED_HOSTS` | No | — | Comma-separated allowed hosts for DNS rebinding protection (HTTP mode only). Rejects any other `Host`, including Kubernetes probe traffic — leave unset behind a load balancer |
+| `TRUST_PROXY` | No | `1` | Number of reverse-proxy hops to trust for the client IP (rate limiting). HTTP mode only |
 | `PUBLIC_URL` | No | — | Public base URL of this server. With `OAUTH_ENCRYPTION_KEY`, enables connector mode (HTTP mode only) |
 | `OAUTH_ENCRYPTION_KEY` | No | — | 32 random bytes, base64-encoded. Seals OAuth tokens; rotate to sign everyone out |
 
