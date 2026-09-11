@@ -211,8 +211,9 @@ function formatStatuses(data: AnyRecord[]): string {
 }
 
 function formatSettings(data: AnyRecord): string {
+  // Settings are nested (test types, step statuses, ...): inline compact JSON, not "[object Object]".
   return Object.entries(data)
-    .map(([k, v]) => `${k}: ${safe(v)}`)
+    .map(([k, v]) => `${k}: ${v !== null && typeof v === "object" ? JSON.stringify(v) : safe(v)}`)
     .join("\n");
 }
 

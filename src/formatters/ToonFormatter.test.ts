@@ -272,6 +272,17 @@ describe("ToonFormatter", () => {
   // ---------------------------------------------------------------------------
   describe("branch coverage — edge cases", () => {
     // 1. Unknown entityType fallback (line 257 — the `if (!handler)` branch)
+    it("settings: nested objects are inlined as JSON, never [object Object]", () => {
+      const out = fmt.format("settings", {
+        projectId: "1",
+        testEnvironments: ["UAT", "QA"],
+        testTypeSettings: { defaultTestTypeId: "x", testTypes: [{ id: "x", name: "Manual" }] },
+      });
+      expect(out).not.toContain("[object Object]");
+      expect(out).toContain('testTypeSettings: {"defaultTestTypeId":"x"');
+      expect(out).toContain("projectId: 1");
+    });
+
     it("falls back to JSON.stringify for unknown entity type", () => {
       const data = { foo: "bar" };
       const result = fmt.format("unknown_type" as any, data);
