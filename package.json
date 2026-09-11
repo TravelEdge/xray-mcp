@@ -1,6 +1,6 @@
 {
   "name": "@triparc/xray-mcp",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Production-grade MCP server for Xray Cloud Test Management API with token-optimized TOON responses",
   "type": "module",
   "main": "dist/index.js",
@@ -30,18 +30,19 @@
     "introspect:audit": "tsx scripts/introspect-schema.ts --audit"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "express": "^5.2.1",
+    "express-rate-limit": "8.5.2",
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.15",
+    "@biomejs/biome": "^2.4.16",
     "@types/express": "^5.0.6",
-    "@types/node": "^22.19.19",
-    "@vitest/coverage-v8": "^4.1.6",
-    "tsx": "^4.22.3",
+    "@types/node": "^22.19.20",
+    "@vitest/coverage-v8": "^4.1.8",
+    "tsx": "^4.22.4",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.8"
   },
   "keywords": [
     "mcp",

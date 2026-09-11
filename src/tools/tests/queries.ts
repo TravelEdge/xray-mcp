@@ -182,8 +182,8 @@ export const GET_EXPANDED_TEST_FULL = `
  * Resolver count: ~7 (getTests, total, results, testType, status, jira, steps.nodes count)
  */
 export const LIST_TESTS_TOON = `
-  query GetTests($jql: String, $limit: Int!, $start: Int, $folder: FolderSearchInput) {
-    getTests(jql: $jql, limit: $limit, start: $start, folder: $folder) {
+  query GetTests($jql: String, $projectId: String, $limit: Int!, $start: Int, $folder: FolderSearchInput) {
+    getTests(jql: $jql, projectId: $projectId, limit: $limit, start: $start, folder: $folder) {
       total
       results {
         issueId
@@ -204,8 +204,8 @@ export const LIST_TESTS_TOON = `
  *   preconditions.results)
  */
 export const LIST_TESTS_FULL = `
-  query GetTests($jql: String, $limit: Int!, $start: Int, $folder: FolderSearchInput) {
-    getTests(jql: $jql, limit: $limit, start: $start, folder: $folder) {
+  query GetTests($jql: String, $projectId: String, $limit: Int!, $start: Int, $folder: FolderSearchInput) {
+    getTests(jql: $jql, projectId: $projectId, limit: $limit, start: $start, folder: $folder) {
       total
       results {
         issueId

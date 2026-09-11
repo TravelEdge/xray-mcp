@@ -17,7 +17,14 @@ registerTool({
   accessLevel: "read",
   inputSchema: z.object({
     jql: JQL_PARAM,
-    folder: z.string().optional().describe("Filter by folder path (e.g. /Regression/Login)"),
+    folder: z
+      .string()
+      .optional()
+      .describe("Filter by folder path (e.g. /Regression/Login). Requires projectId"),
+    projectId: z
+      .string()
+      .optional()
+      .describe("Jira project ID (e.g. '10000'). Required when filtering by folder"),
     ...PAGINATION_PARAMS,
     format: FORMAT_PARAM,
   }),
@@ -25,12 +32,14 @@ registerTool({
     const {
       jql,
       folder,
+      projectId,
       limit: rawLimit,
       start,
       format,
     } = args as {
       jql?: string;
       folder?: string;
+      projectId?: string;
       limit: number;
       start: number;
       format: string;
@@ -42,7 +51,7 @@ registerTool({
     const query = selectQuery(format, LIST_TESTS_TOON, LIST_TESTS_FULL);
     const data = await client.executeGraphQL<{
       getTests: { total: number; results: unknown[] };
-    }>(query, { jql, limit, start, folder: folder ? { path: folder } : undefined });
+    }>(query, { jql, limit, start, projectId, folder: folder ? { path: folder } : undefined });
 
     const { total, results } = data.getTests;
     const header = paginationHeader("Tests", start, results.length, total);

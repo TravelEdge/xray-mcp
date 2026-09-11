@@ -9,3 +9,6 @@ data:
   PORT: "3000"
   XRAY_REGION: {{ .Values.xray.region | quote }}
   XRAY_CREDENTIAL_MODE: {{ .Values.xray.credentialMode | quote }}
+  {{- if .Values.oauth.enabled }}
+  PUBLIC_URL: {{ required "oauth.publicUrl is required when oauth.enabled" .Values.oauth.publicUrl | quote }}
+  {{- end }}

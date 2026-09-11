@@ -81,6 +81,16 @@ describe("XrayCloudClient", () => {
       });
     });
 
+    it("executeGraphQL with errors and all-null root fields throws XrayGqlError", async () => {
+      vi.mocked(httpClient.request).mockResolvedValueOnce({
+        data: { getTests: null },
+        errors: [{ message: "Folder path requires a project in the JQL", path: ["getTests"] }],
+      });
+      await expect(client.executeGraphQL("{ getTests { total } }")).rejects.toThrow(
+        /Folder path requires a project/,
+      );
+    });
+
     it("executeGraphQL with both data and errors returns data (partial success per D-07)", async () => {
       const mockRequest = vi.mocked(httpClient.request);
       const partialData = { tests: [{ issueId: "1" }] };

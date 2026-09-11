@@ -1,7 +1,14 @@
+import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js";
+import {
+  getOAuthProtectedResourceMetadataUrl,
+  mcpAuthRouter,
+} from "@modelcontextprotocol/sdk/server/auth/router.js";
 import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import type { Request, Response } from "express";
-import { authManager, CredentialStore } from "../auth/index.js";
+import express, { type NextFunction, type Request, type Response } from "express";
+import { rateLimit } from "express-rate-limit";
+import { authManager, CredentialStore, OAuthProvider } from "../auth/index.js";
+import type { AuthContext } from "../types/index.js";
 import { createServer } from "./createServer.js";
 
 /**
@@ -9,8 +16,14 @@ import { createServer } from "./createServer.js";
  *
  * Per D-30: Uses createMcpExpressApp from MCP SDK for DNS rebinding protection.
  * Per D-33: Each POST /mcp creates a new McpServer for credential isolation.
- * Per D-31: Credentials extracted from X-Xray-Client-Id / X-Xray-Client-Secret headers.
  * Per D-32: Region is server-wide via XRAY_REGION env var only.
+ *
+ * Credentials for a request are resolved, in order:
+ *   1. OAuth bearer token (when PUBLIC_URL + OAUTH_ENCRYPTION_KEY are set) — the
+ *      user's own Xray key pair, sealed inside the token at login.
+ *   2. X-Xray-Client-Id / X-Xray-Client-Secret headers (D-31).
+ *   3. Server env credentials, only in XRAY_CREDENTIAL_MODE=fully-shared.
+ * Otherwise 401 — with OAuth discovery headers when OAuth is enabled.
  */
 export function createHttpApp() {
   const allowedHostsRaw = process.env.ALLOWED_HOSTS;
@@ -18,6 +31,9 @@ export function createHttpApp() {
     ? allowedHostsRaw.split(",").map((h) => h.trim())
     : undefined;
   const app = createMcpExpressApp({ host: "0.0.0.0", allowedHosts });
+  // Behind a load balancer / gateway: rate limiters must key on the client IP from
+  // X-Forwarded-For, not the proxy's. Number of trusted hops; harmless with no proxy.
+  app.set("trust proxy", Number(process.env.TRUST_PROXY ?? 1));
 
   // TRNS-05: Health check — liveness probe
   app.get("/healthz", (_req: Request, res: Response) => {
@@ -45,19 +61,78 @@ export function createHttpApp() {
     }
   });
 
-  // TRNS-02, TRNS-03: Stateless per-request MCP handler
-  app.post("/mcp", async (req: Request, res: Response) => {
-    const credentialStore = new CredentialStore();
+  const oauth = createOAuthProvider();
+  const region = () =>
+    (process.env.XRAY_REGION || "global") as AuthContext["credentials"]["xrayRegion"];
 
-    // D-31: Extract per-request credentials from custom headers
+  if (oauth) {
+    const publicUrl = new URL(process.env.PUBLIC_URL as string);
+    app.use(
+      mcpAuthRouter({
+        provider: oauth,
+        issuerUrl: publicUrl,
+        resourceServerUrl: new URL("/mcp", publicUrl),
+        resourceName: "Xray MCP",
+      }),
+    );
+    // Login form target. Rate-limited: it forwards guesses to Xray's /authenticate.
+    app.post(
+      "/authorize/login",
+      rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false }),
+      express.urlencoded({ extended: false }),
+      (req: Request, res: Response) => oauth.login(req.body, res),
+    );
+  }
+
+  // Resolve credentials for POST /mcp. Sets res.locals.xrayAuth or ends the response.
+  const resolveAuth = (req: Request, res: Response, next: NextFunction) => {
+    const credentialStore = new CredentialStore();
     const clientId = req.headers["x-xray-client-id"] as string | undefined;
     const clientSecret = req.headers["x-xray-client-secret"] as string | undefined;
+    const hasBearer = /^bearer /i.test(req.headers.authorization ?? "");
 
-    // Build per-request credential context
-    const auth = credentialStore.resolveFromHeaders({ clientId, clientSecret });
+    if (oauth && (hasBearer || !clientId)) {
+      if (!hasBearer && credentialStore.getCredentialMode() === "fully-shared") {
+        res.locals.xrayAuth = credentialStore.resolveFromEnv();
+        return next();
+      }
+      return requireBearerAuth({
+        verifier: oauth,
+        resourceMetadataUrl: getOAuthProtectedResourceMetadataUrl(
+          new URL("/mcp", process.env.PUBLIC_URL),
+        ),
+      })(req, res, () => {
+        const extra = req.auth?.extra as { xrayClientId: string; xrayClientSecret: string };
+        res.locals.xrayAuth = {
+          credentials: {
+            xrayClientId: extra.xrayClientId,
+            xrayClientSecret: extra.xrayClientSecret,
+            xrayRegion: region(),
+          },
+          source: "oauth",
+        };
+        next();
+      });
+    }
 
+    if (!clientId && credentialStore.getCredentialMode() === "fully-shared") {
+      res.locals.xrayAuth = credentialStore.resolveFromEnv();
+      return next();
+    }
+    try {
+      res.locals.xrayAuth = credentialStore.resolveFromHeaders({ clientId, clientSecret });
+      next();
+    } catch (err) {
+      res
+        .status(401)
+        .json({ error: "unauthorized", message: err instanceof Error ? err.message : String(err) });
+    }
+  };
+
+  // TRNS-02, TRNS-03: Stateless per-request MCP handler
+  app.post("/mcp", resolveAuth, async (req: Request, res: Response) => {
     // D-33: Per-request server instance for credential isolation
-    const server = createServer({ credentialOverride: auth });
+    const server = createServer({ credentialOverride: res.locals.xrayAuth as AuthContext });
 
     // Stateless transport: sessionIdGenerator undefined = no session tracking
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
@@ -81,6 +156,17 @@ export function createHttpApp() {
   });
 
   return app;
+}
+
+/** OAuth is on iff PUBLIC_URL and OAUTH_ENCRYPTION_KEY are both set. */
+function createOAuthProvider(): OAuthProvider | undefined {
+  const key = process.env.OAUTH_ENCRYPTION_KEY;
+  const publicUrl = process.env.PUBLIC_URL;
+  if (!key || !publicUrl) return undefined;
+  const region = (process.env.XRAY_REGION || "global") as AuthContext["credentials"]["xrayRegion"];
+  return new OAuthProvider(key, async (xrayClientId, xrayClientSecret) => {
+    await authManager.getCloudToken({ xrayClientId, xrayClientSecret, xrayRegion: region });
+  });
 }
 
 /**
