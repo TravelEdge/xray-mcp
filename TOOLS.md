@@ -53,7 +53,8 @@
 **Parameters:**
 
 - `jql` *(optional)* — JQL query to filter results (e.g. 'project = PROJ AND status = TODO')
-- `folder` *(optional)* — Filter by folder path (e.g. /Regression/Login)
+- `folder` *(optional)* — Filter by folder path (e.g. /Regression/Login). Requires projectId
+- `projectId` *(optional)* — Jira project ID (e.g. '10000'). Required when filtering by folder
 - `limit` *(optional)* — Number of results per page (1-100, default 50)
 - `start` *(optional)* — Offset for pagination (0-based)
 
@@ -62,7 +63,8 @@
 **Parameters:**
 
 - `jql` *(optional)* — JQL query to filter results (e.g. 'project = PROJ AND status = TODO')
-- `folder` *(optional)* — Filter by folder path (e.g. /Regression/Login)
+- `folder` *(optional)* — Filter by folder path (e.g. /Regression/Login). Requires projectId
+- `projectId` *(optional)* — Jira project ID (e.g. '10000'). Required when filtering by folder
 - `limit` *(optional)* — Number of results per page (1-100, default 10 — lower default due to expensive nested step resolution)
 - `start` *(optional)* — Offset for pagination (0-based)
 

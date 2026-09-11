@@ -199,6 +199,27 @@ describe("xray_list_tests", () => {
     const text = result.content[0].text;
     expect(text).toContain("next: start=1");
   });
+
+  it("passes folder as FolderSearchInput and projectId as a root argument", async () => {
+    const client = makeMockClient(mockListTestsResponse);
+    const tool = findTool("xray_list_tests");
+    await tool.handler(
+      {
+        folder: "/Regression",
+        projectId: "10000",
+        limit: 50,
+        start: 0,
+        format: "toon",
+        _client: client,
+      },
+      ctx,
+    );
+
+    expect(vi.mocked(client.executeGraphQL)).toHaveBeenCalledWith(
+      expect.stringContaining("GetTests"),
+      expect.objectContaining({ folder: { path: "/Regression" }, projectId: "10000" }),
+    );
+  });
 });
 
 describe("xray_list_expanded_tests", () => {
