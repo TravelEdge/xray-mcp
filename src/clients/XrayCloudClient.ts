@@ -57,8 +57,13 @@ export class XrayCloudClient implements XrayClient {
         // Full error — no usable data
         throw new XrayGqlError(response.errors);
       }
-      // D-07: Partial success — return data even when errors are present
-      // Callers can inspect the raw response if needed
+      // D-07: Partial success — return data even when errors are present.
+      // But if every root field is null there is nothing usable: surface Xray's message
+      // instead of letting the caller crash destructuring null.
+      const roots = Object.values(response.data as Record<string, unknown>);
+      if (roots.length > 0 && roots.every((v) => v === null)) {
+        throw new XrayGqlError(response.errors);
+      }
     }
 
     if (!response.data) {
