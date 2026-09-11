@@ -89,10 +89,12 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # npm trusted publishing (OIDC) needs npm >= 11.5.1; Node 22 ships npm 10.
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
       - name: Publish with provenance
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-docker:
     name: Publish to GHCR

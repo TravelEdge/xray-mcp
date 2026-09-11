@@ -3,6 +3,11 @@ name: Publish
 on:
   push:
     tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)publish, e.g. v0.3.0"
+        required: true
 
 jobs:
   validate-version:
@@ -12,10 +17,13 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Validate version
         run: |
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          TAG_VERSION="${{ inputs.tag || github.ref_name }}"
+          TAG_VERSION="${TAG_VERSION#v}"
           PKG_VERSION=$(node -p "require('./package.json').version")
           if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
             echo "::error::Tag version ($TAG_VERSION) does not match package.json version ($PKG_VERSION)"
@@ -32,6 +40,8 @@ jobs:
       id-token: write  # Required for npm OIDC provenance
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - uses: pnpm/action-setup@v4
 
@@ -47,14 +57,18 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # npm trusted publishing (OIDC) needs npm >= 11.5.1; Node 22 ships npm 10.
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
       - name: Publish with provenance
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-docker:
     name: Publish to GHCR
     needs: validate-version
+    # Manual dispatch is for re-publishing to npm only; image tags come from the pushed git tag.
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
