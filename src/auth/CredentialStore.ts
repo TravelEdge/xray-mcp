@@ -55,6 +55,20 @@ export class CredentialStore {
   }
 
   /**
+   * The server's own credentials, used on behalf of a caller who supplied none.
+   * Only meaningful in shared-reads / fully-shared modes; the WriteGuard treats
+   * these as non-user credentials.
+   */
+  resolveShared(): AuthContext {
+    return { ...this.resolveFromEnv(), source: "shared" };
+  }
+
+  /** True when callers without their own credentials may use the server's (shared-reads / fully-shared). */
+  allowsShared(): boolean {
+    return this.getCredentialMode() !== "strict";
+  }
+
+  /**
    * Resolves credentials from HTTP request headers.
    * Used in HTTP transport mode for per-request credential isolation (D-31).
    *

@@ -57,8 +57,8 @@ export function createServer(config: ServerConfig = {}): McpServer {
       const mode = credentialStore.getCredentialMode();
       const writeGuard = new WriteGuard(mode);
 
-      // Enforce credential mode access control
-      writeGuard.checkAccess(tool.accessLevel, auth);
+      // Enforce credential mode access control — shared server creds are not user creds
+      writeGuard.checkAccess(tool.accessLevel, auth.source === "shared" ? null : auth);
 
       // Build HTTP client and Xray Cloud client per call.
       // HttpClient is stateless; XrayCloudClient caches nothing itself —

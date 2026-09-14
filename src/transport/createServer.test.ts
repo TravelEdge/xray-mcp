@@ -178,6 +178,21 @@ describe("createServer with tools", () => {
     toolSpy.mockRestore();
   });
 
+  it("passes null user auth to WriteGuard when credentials are shared", async () => {
+    const toolSpy = vi.spyOn(McpServer.prototype, "tool");
+    const { TOOL_REGISTRY } = await import("../tools/registry.js");
+    (TOOL_REGISTRY as { accessLevel: string }[]).push({ ...mockTool, accessLevel: "write" });
+    const shared = {
+      credentials: { xrayClientId: "s", xrayClientSecret: "s", xrayRegion: "global" as const },
+      source: "shared" as const,
+    };
+    createServer({ credentialOverride: shared });
+    const cb = toolSpy.mock.calls.at(-1)?.[3] as (a: Record<string, unknown>) => Promise<unknown>;
+    await cb({});
+    expect(mockCheckAccess).toHaveBeenCalledWith("write", null);
+    TOOL_REGISTRY.pop();
+  });
+
   it("tool handler defaults format to toon when not provided", async () => {
     const toolSpy = vi.spyOn(McpServer.prototype, "tool");
 
