@@ -309,7 +309,7 @@ helm upgrade --install xray-mcp ./helm \
   --set oauth.publicUrl=https://xray-mcp.yourcompany.com
 ```
 
-Then, in Claude (Owner/Admin → Settings → Connectors → Add custom connector), enter `https://xray-mcp.yourcompany.com/mcp` and enable it for the organization. Each user clicks *Connect*, enters their Xray Client ID/Secret once (a Jira admin generates these under Jira Settings → Apps → Xray → API Keys), and is done.
+Then, in Claude (Owner/Admin → Settings → Connectors → Add custom connector), enter `https://xray-mcp.yourcompany.com/mcp` and enable it for the organization. Each user clicks *Connect*, enters their Xray Client ID/Secret once (a Jira admin generates these under Jira Settings → Apps → Xray → API Keys), and is done. With `xray.credentialMode=shared-reads` (or `fully-shared`) the page also offers *Continue with shared access* for users who only need to read — see [Credential Modes](#credential-modes).
 
 Header-based clients (Claude Code, Cursor, VS Code) keep working unchanged when connector mode is on.
 
@@ -354,7 +354,9 @@ In `strict` and `shared-reads` modes, HTTP callers provide their Xray credential
 
 **stdio mode:** credentials come from `XRAY_CLIENT_ID` / `XRAY_CLIENT_SECRET` environment variables.
 
-**HTTP mode:** credentials come from `X-Xray-Client-Id` / `X-Xray-Client-Secret` request headers (unless `fully-shared`, where server env vars are used).
+**HTTP mode:** each request resolves credentials in order — OAuth bearer token (connector mode) → `X-Xray-Client-Id` / `X-Xray-Client-Secret` headers → the server's own `XRAY_CLIENT_ID` / `XRAY_CLIENT_SECRET` when the mode allows it. In `shared-reads`, requests that fall back to the server's credentials can only call read tools; a write returns `ERR:AUTH_WRITE_DENIED` with a hint to supply a personal key. In `strict`, a request with no credentials gets `401`.
+
+**Connector mode + `shared-reads`** is the usual org setup: the sign-in page offers *Continue with shared access (read-only)*, so anyone can browse test data without an Xray key, while people who need to create or modify tests sign in with their own key and are attributed in Xray. To move from shared to personal access, disconnect the connector and reconnect, choosing the key form.
 
 ## Tools
 

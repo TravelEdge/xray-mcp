@@ -28,8 +28,12 @@ export interface CloudCredentials {
 export interface AuthContext {
   /** The Xray Cloud credentials to use for this request. */
   credentials: CloudCredentials;
-  /** Origin of these credentials — "env" for environment variables, "header" for HTTP headers, "oauth" for a bearer token. */
-  source: "env" | "header" | "oauth";
+  /**
+   * Origin of these credentials — "env" (stdio env vars), "header" (X-Xray-* headers),
+   * "oauth" (bearer token carrying the user's own key), or "shared" (the server's own key,
+   * used on behalf of a caller who supplied none — read-only in shared-reads mode).
+   */
+  source: "env" | "header" | "oauth" | "shared";
 }
 
 // Tool types

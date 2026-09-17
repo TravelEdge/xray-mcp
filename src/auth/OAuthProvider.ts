@@ -58,6 +58,8 @@ export class OAuthProvider implements OAuthServerProvider {
   constructor(
     encryptionKeyBase64: string,
     private readonly checkCredentials: XrayCredentialCheck,
+    /** Offer "continue with shared access" on the sign-in page (shared-reads / fully-shared). */
+    private readonly allowShared = false,
   ) {
     this.key = Buffer.from(encryptionKeyBase64, "base64");
     if (this.key.length !== 32) {
@@ -138,7 +140,10 @@ export class OAuthProvider implements OAuthServerProvider {
       },
       CODE_TTL_S,
     );
-    res.status(200).type("html").send(loginPage(request, params.state));
+    res
+      .status(200)
+      .type("html")
+      .send(loginPage(request, params.state, undefined, this.allowShared));
   }
 
   /**
@@ -146,7 +151,13 @@ export class OAuthProvider implements OAuthServerProvider {
    * redirects back to the client with an authorization code.
    */
   async login(
-    body: { request?: string; state?: string; client_id?: string; client_secret?: string },
+    body: {
+      request?: string;
+      state?: string;
+      client_id?: string;
+      client_secret?: string;
+      shared?: string;
+    },
     res: Response,
   ): Promise<void> {
     const req = body.request ? this.unseal(body.request, "login") : null;
@@ -155,27 +166,37 @@ export class OAuthProvider implements OAuthServerProvider {
         .status(400)
         .type("html")
         .send(
-          loginPage("", body.state, "Login session expired — start again from your MCP client."),
-        );
-      return;
-    }
-    const cid = (body.client_id ?? "").trim();
-    const cs = (body.client_secret ?? "").trim();
-    try {
-      if (!cid || !cs) throw new Error("missing");
-      await this.checkCredentials(cid, cs);
-    } catch {
-      res
-        .status(401)
-        .type("html")
-        .send(
           loginPage(
-            body.request ?? "",
+            "",
             body.state,
-            "Xray rejected those credentials. Check the Client ID and Secret.",
+            "Login session expired — start again from your MCP client.",
+            this.allowShared,
           ),
         );
       return;
+    }
+    // Shared access: token carries no key; the server uses its own (read-only in shared-reads).
+    const shared = this.allowShared && body.shared === "1";
+    const cid = shared ? "" : (body.client_id ?? "").trim();
+    const cs = shared ? "" : (body.client_secret ?? "").trim();
+    if (!shared) {
+      try {
+        if (!cid || !cs) throw new Error("missing");
+        await this.checkCredentials(cid, cs);
+      } catch {
+        res
+          .status(401)
+          .type("html")
+          .send(
+            loginPage(
+              body.request ?? "",
+              body.state,
+              "Xray rejected those credentials. Check the Client ID and Secret.",
+              this.allowShared,
+            ),
+          );
+        return;
+      }
     }
     const code = this.seal(
       {
@@ -259,7 +280,12 @@ function esc(s: string): string {
   return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 }
 
-function loginPage(request: string, state: string | undefined, error?: string): string {
+function loginPage(
+  request: string,
+  state: string | undefined,
+  error?: string,
+  allowShared = false,
+): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sign in to Xray</title>
 <style>body{font:15px/1.5 system-ui,sans-serif;background:#f4f5f7;margin:0;display:grid;place-items:center;min-height:100vh}
@@ -267,12 +293,15 @@ form{background:#fff;padding:2rem;border-radius:8px;box-shadow:0 1px 4px rgba(0,
 h1{font-size:1.25rem;margin:0 0 .25rem}p{margin:0 0 1rem;color:#555}label{display:block;font-weight:600;margin-top:1rem}
 input{width:100%;box-sizing:border-box;padding:.5rem;margin-top:.25rem;border:1px solid #ccc;border-radius:4px;font:inherit}
 button{margin-top:1.5rem;width:100%;padding:.6rem;border:0;border-radius:4px;background:#0052cc;color:#fff;font:inherit;font-weight:600}
-.err{background:#ffebe6;color:#bf2600;padding:.5rem .75rem;border-radius:4px;margin-bottom:.5rem}</style></head><body>
+.err{background:#ffebe6;color:#bf2600;padding:.5rem .75rem;border-radius:4px;margin-bottom:.5rem}
+.or{text-align:center;color:#888;margin:1rem 0 0}.alt{background:#fff;color:#0052cc;border:1px solid #0052cc;margin-top:.5rem}</style></head><body>
 <form method="post" action="/authorize/login" autocomplete="off">
 <h1>Sign in to Xray</h1><p>Use your personal Xray Cloud API key. Actions in Xray will be attributed to you.</p>
 ${error ? `<div class="err">${esc(error)}</div>` : ""}
 <input type="hidden" name="request" value="${esc(request)}"><input type="hidden" name="state" value="${esc(state ?? "")}">
 <label>Client ID<input name="client_id" required autofocus></label>
 <label>Client Secret<input name="client_secret" type="password" required></label>
-<button type="submit">Connect</button></form></body></html>`;
+<button type="submit">Connect</button>
+${allowShared ? `<p class="or">or</p><button type="submit" name="shared" value="1" class="alt" formnovalidate>Continue with shared access (read-only)</button>` : ""}
+</form></body></html>`;
 }

@@ -35,7 +35,7 @@ export class WriteGuard {
         if (accessLevel === "read") return;
         if (!userAuth) {
           throw new XrayAuthError(
-            "ERR:AUTH_WRITE_DENIED Write operations require user credentials in shared-reads mode\n-> Provide XRAY_CLIENT_ID and XRAY_CLIENT_SECRET via request headers",
+            "ERR:AUTH_WRITE_DENIED Write operations require your own Xray API key in shared-reads mode\n-> Send X-Xray-Client-Id / X-Xray-Client-Secret headers, or reconnect the connector and sign in with your personal key",
           );
         }
         return;

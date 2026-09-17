@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 
 vi.mock("../auth/AuthManager.js", async (orig) => {
   const mod = await orig<typeof import("../auth/AuthManager.js")>();
@@ -29,8 +30,34 @@ const MCP_HEADERS = {
   "content-type": "application/json",
   accept: "application/json, text/event-stream",
 };
+const call = (name: string, args: Record<string, unknown> = {}) =>
+  JSON.stringify({
+    jsonrpc: "2.0",
+    id: 9,
+    method: "tools/call",
+    params: { name, arguments: args },
+  });
 
 async function startApp() {
+  // Register a minimal read + write tool into the fresh registry so tools/call exercises the WriteGuard for real.
+  const { registerTool, TOOL_REGISTRY } = await import("../tools/registry.js");
+  if (!TOOL_REGISTRY.some((t) => t.name === "t_read")) {
+    const ok = async () => ({ content: [{ type: "text" as const, text: "ok" }] });
+    registerTool({
+      name: "t_read",
+      description: "r",
+      accessLevel: "read",
+      inputSchema: z.object({}),
+      handler: ok,
+    });
+    registerTool({
+      name: "t_write",
+      description: "w",
+      accessLevel: "write",
+      inputSchema: z.object({}),
+      handler: ok,
+    });
+  }
   const { createHttpApp } = await import("./http.js");
   const server = createHttpApp().listen(0);
   const addr = server.address();
@@ -58,6 +85,58 @@ describe("HTTP auth resolution (OAuth disabled)", () => {
       const res = await fetch(`${base}/mcp`, { method: "POST", headers: MCP_HEADERS, body: INIT });
       expect(res.status).toBe(401);
       expect((await res.json()).error).toBe("unauthorized");
+    } finally {
+      await close();
+    }
+  });
+
+  it("shared-reads: no credentials → reads succeed, writes are denied with a hint", async () => {
+    process.env.XRAY_CREDENTIAL_MODE = "shared-reads";
+    process.env.XRAY_CLIENT_ID = "env-id";
+    process.env.XRAY_CLIENT_SECRET = "env-secret";
+    const { base, close } = await startApp();
+    try {
+      const r = await fetch(`${base}/mcp`, {
+        method: "POST",
+        headers: MCP_HEADERS,
+        body: call("t_read"),
+      });
+      expect(r.status).toBe(200);
+      expect(await r.text()).toContain('"text":"ok"');
+
+      const w = await fetch(`${base}/mcp`, {
+        method: "POST",
+        headers: MCP_HEADERS,
+        body: call("t_write"),
+      });
+      expect(w.status).toBe(200); // JSON-RPC-level error, not HTTP
+      const body = await w.text();
+      expect(body).toContain("AUTH_WRITE_DENIED");
+      expect(body).not.toContain('"text":"ok"');
+
+      // With personal headers the same write goes through
+      const ok = await fetch(`${base}/mcp`, {
+        method: "POST",
+        headers: { ...MCP_HEADERS, "x-xray-client-id": "me", "x-xray-client-secret": "mine" },
+        body: call("t_write"),
+      });
+      expect(await ok.text()).toContain('"text":"ok"');
+    } finally {
+      await close();
+    }
+  });
+
+  it("strict: no credentials → 401 even for reads", async () => {
+    process.env.XRAY_CLIENT_ID = "env-id";
+    process.env.XRAY_CLIENT_SECRET = "env-secret";
+    const { base, close } = await startApp();
+    try {
+      const r = await fetch(`${base}/mcp`, {
+        method: "POST",
+        headers: MCP_HEADERS,
+        body: call("t_read"),
+      });
+      expect(r.status).toBe(401);
     } finally {
       await close();
     }
@@ -110,6 +189,97 @@ describe("HTTP auth resolution (OAuth enabled)", () => {
       const res = await fetch(`${base}/mcp`, { method: "POST", headers: MCP_HEADERS, body: INIT });
       expect(res.status).toBe(401);
       expect(res.headers.get("www-authenticate")).toContain("resource_metadata=");
+    } finally {
+      await close();
+    }
+  });
+
+  it("strict: sign-in page has no shared-access option and a shared token is refused", async () => {
+    const { base, close } = await startApp();
+    try {
+      const reg = await fetch(`${base}/register`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ redirect_uris: [REDIRECT], token_endpoint_auth_method: "none" }),
+      }).then((r) => r.json());
+      const q = new URLSearchParams({
+        response_type: "code",
+        client_id: reg.client_id,
+        redirect_uri: REDIRECT,
+        code_challenge: "x",
+        code_challenge_method: "S256",
+      });
+      const html = await fetch(`${base}/authorize?${q}`).then((r) => r.text());
+      expect(html).not.toContain('name="shared"');
+      const request = /name="request" value="([^"]+)"/.exec(html)?.[1] as string;
+      // Posting shared=1 anyway is treated as a normal (empty) login → 401
+      const res = await fetch(`${base}/authorize/login`, {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ request, shared: "1" }),
+        redirect: "manual",
+      });
+      expect(res.status).toBe(401);
+    } finally {
+      await close();
+    }
+  });
+
+  it("shared-reads: 'continue with shared access' issues a key-less token; reads ok, writes denied", async () => {
+    process.env.XRAY_CREDENTIAL_MODE = "shared-reads";
+    process.env.XRAY_CLIENT_ID = "env-id";
+    process.env.XRAY_CLIENT_SECRET = "env-secret";
+    const { base, close } = await startApp();
+    try {
+      const reg = await fetch(`${base}/register`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ redirect_uris: [REDIRECT], token_endpoint_auth_method: "none" }),
+      }).then((r) => r.json());
+      const verifier = randomBytes(32).toString("base64url");
+      const challenge = createHash("sha256").update(verifier).digest("base64url");
+      const q = new URLSearchParams({
+        response_type: "code",
+        client_id: reg.client_id,
+        redirect_uri: REDIRECT,
+        code_challenge: challenge,
+        code_challenge_method: "S256",
+      });
+      const html = await fetch(`${base}/authorize?${q}`).then((r) => r.text());
+      expect(html).toContain('name="shared" value="1"');
+      const request = /name="request" value="([^"]+)"/.exec(html)?.[1] as string;
+
+      const login = await fetch(`${base}/authorize/login`, {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ request, shared: "1" }),
+        redirect: "manual",
+      });
+      expect(login.status).toBe(302);
+      const code = new URL(login.headers.get("location") as string).searchParams.get(
+        "code",
+      ) as string;
+      const tokens = await fetch(`${base}/token`, {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          client_id: reg.client_id,
+          code,
+          code_verifier: verifier,
+          redirect_uri: REDIRECT,
+        }),
+      }).then((r) => r.json());
+      const auth = { ...MCP_HEADERS, authorization: `Bearer ${tokens.access_token}` };
+
+      const r = await fetch(`${base}/mcp`, { method: "POST", headers: auth, body: call("t_read") });
+      expect(await r.text()).toContain('"text":"ok"');
+      const w = await fetch(`${base}/mcp`, {
+        method: "POST",
+        headers: auth,
+        body: call("t_write"),
+      });
+      expect(await w.text()).toContain("AUTH_WRITE_DENIED");
     } finally {
       await close();
     }

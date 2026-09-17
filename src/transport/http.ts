@@ -22,7 +22,8 @@ import { createServer } from "./createServer.js";
  *   1. OAuth bearer token (when PUBLIC_URL + OAUTH_ENCRYPTION_KEY are set) — the
  *      user's own Xray key pair, sealed inside the token at login.
  *   2. X-Xray-Client-Id / X-Xray-Client-Secret headers (D-31).
- *   3. Server env credentials, only in XRAY_CREDENTIAL_MODE=fully-shared.
+ *   3. Server env credentials, in shared-reads / fully-shared modes (source "shared" —
+ *      WriteGuard denies writes on these in shared-reads).
  * Otherwise 401 — with OAuth discovery headers when OAuth is enabled.
  */
 export function createHttpApp() {
@@ -92,8 +93,8 @@ export function createHttpApp() {
     const hasBearer = /^bearer /i.test(req.headers.authorization ?? "");
 
     if (oauth && (hasBearer || !clientId)) {
-      if (!hasBearer && credentialStore.getCredentialMode() === "fully-shared") {
-        res.locals.xrayAuth = credentialStore.resolveFromEnv();
+      if (!hasBearer && credentialStore.allowsShared()) {
+        res.locals.xrayAuth = credentialStore.resolveShared();
         return next();
       }
       return requireBearerAuth({
@@ -103,6 +104,18 @@ export function createHttpApp() {
         ),
       })(req, res, () => {
         const extra = req.auth?.extra as { xrayClientId: string; xrayClientSecret: string };
+        // Token issued via "continue with shared access" carries no key.
+        if (!extra.xrayClientId) {
+          if (!credentialStore.allowsShared()) {
+            res.status(401).json({
+              error: "unauthorized",
+              message: "Shared access is disabled; reconnect with your own Xray API key",
+            });
+            return;
+          }
+          res.locals.xrayAuth = credentialStore.resolveShared();
+          return next();
+        }
         res.locals.xrayAuth = {
           credentials: {
             xrayClientId: extra.xrayClientId,
@@ -115,8 +128,8 @@ export function createHttpApp() {
       });
     }
 
-    if (!clientId && credentialStore.getCredentialMode() === "fully-shared") {
-      res.locals.xrayAuth = credentialStore.resolveFromEnv();
+    if (!clientId && credentialStore.allowsShared()) {
+      res.locals.xrayAuth = credentialStore.resolveShared();
       return next();
     }
     try {
@@ -164,9 +177,13 @@ function createOAuthProvider(): OAuthProvider | undefined {
   const publicUrl = process.env.PUBLIC_URL;
   if (!key || !publicUrl) return undefined;
   const region = (process.env.XRAY_REGION || "global") as AuthContext["credentials"]["xrayRegion"];
-  return new OAuthProvider(key, async (xrayClientId, xrayClientSecret) => {
-    await authManager.getCloudToken({ xrayClientId, xrayClientSecret, xrayRegion: region });
-  });
+  return new OAuthProvider(
+    key,
+    async (xrayClientId, xrayClientSecret) => {
+      await authManager.getCloudToken({ xrayClientId, xrayClientSecret, xrayRegion: region });
+    },
+    new CredentialStore().allowsShared(),
+  );
 }
 
 /**
